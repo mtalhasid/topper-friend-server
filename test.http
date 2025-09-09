@@ -1,0 +1,178 @@
+### Register a new user
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Mohammed Talha Ahmed",
+  "email": "trainedbot10k@example.com",
+  "password": "testuser"
+}
+
+### Login
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "talha.codes970@gmail.com",
+  "password": "tolitoli"
+}
+
+### Verify OTP
+POST http://localhost:8080/api/auth/verify-otp
+Content-Type: application/json
+
+{
+  "email": "talha.codes970@gmail.com",
+  "code": "234571"
+}
+
+### Resend OTP
+POST http://localhost:8080/api/auth/resend-otp
+Content-Type: application/json
+
+{
+  "email": "talha.codes970@gmail.com"
+}
+
+
+### Onboarding (example)
+POST http://localhost:8080/api/auth/onboarding
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+
+{
+  "username": "talha17",
+  "name": "Mohamemd Talha Ahmed",
+  "collegeName": "MJCET",
+  "rollNumber": "17",
+  "image": "https://res.cloudinary.com/demo/image/upload/sample.jpg"
+}
+
+### Create a new note (upload option)
+POST http://localhost:8080/api/notes
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+
+{
+  "title": "Mathematics Notes",
+  "pdfLink": "https://res.cloudinary.com/demo/image/upload/math_notes.pdf",
+  "tags": ["math", "calculus", "algebra"],
+  "pdfOption": "upload"
+}
+
+### Create a new note (Google Drive link option)
+POST http://localhost:8080/api/notes
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+
+{
+  "title": "Physics Notes",
+  "pdfLink": "https://drive.google.com/file/d/1ABC123def456ghi789jkl/view",
+  "tags": ["physics", "mechanics"],
+  "pdfOption": "link"
+}
+
+### Get all notes for logged-in user
+GET http://localhost:8080/api/notes
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+
+### Get a single note by ID
+GET http://localhost:8080/api/notes/5
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+
+### Delete a note
+DELETE http://localhost:8080/api/notes/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+
+### Search notes
+GET http://localhost:8080/api/notes/search?query=math
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+
+### Paginated notes
+GET http://localhost:8080/api/notes/page?page=1&size=5
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+
+### Like a note
+POST http://localhost:8080/api/notes/2/like
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+
+### Unlike a note
+DELETE http://localhost:8080/api/notes/2/like
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+
+### Save a note
+POST http://localhost:8080/api/notes/2/save
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+
+### Unsave a note
+DELETE http://localhost:8080/api/notes/2/save
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqYWNvYkBleGFtcGxlLmNvbSIsImlhdCI6MTc1NzM0MTQ0MCwiZXhwIjoxNzU3NDI3ODQwfQ.jhQLILgnVCPXrK1ZDGFOa76bGZU9gPzMeHtQKIKui3o
+
+### Generate summary
+POST http://localhost:8080/api/quiz-generator
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+Content-Type: application/json
+
+{
+  "text": "Spring Boot makes it easy to create stand-alone, production-grade Spring-based applications."
+}
+
+### Generate quiz
+POST http://localhost:8080/api/quiz-generator
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+Content-Type: application/json
+
+{
+  "text": "Java is a high-level programming language. It supports OOP, multithreading, and platform independence.",
+  "action": "generate-quiz"
+}
+
+### Get all quizzes for user
+GET http://localhost:8080/api/quiz-generator
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+
+### 3️⃣ Submit quiz answers and get weakness analysis
+POST http://localhost:8080/api/quiz-generator/submit
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+Content-Type: application/json
+
+{
+  "quizId": 9,
+  "answers": [1, 2, 0]
+}
+
+### 1️⃣ Generate New Study Plan
+POST http://localhost:8080/api/study-plans/generate
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+Content-Type: application/json
+
+{
+  "weaknessAnalysis": "The user's weakness lies in a fundamental misunderstanding of core Java concepts, specifically the role of the JVM and the compilation process.  They seem to be confusing compilation with direct machine code execution and lack a firm grasp of what makes Java platform-independent.\n\n**How to improve:**\n\n1. **Focus on Core Concepts:** The user needs to revisit and solidify their understanding of Java's fundamental principles, particularly the JVM's role in achieving platform independence.  They should study how Java code is compiled (into bytecode, not directly to machine code) and executed by the JVM.\n\n2. **Hands-on Practice:**  Writing and running simple Java programs is crucial.  This will help reinforce theoretical knowledge and provide a practical understanding of the compilation and execution process.\n\n3. **Utilize Learning Resources:**  The user should consult reliable Java learning resources such as textbooks, online tutorials (e.g., Oracle's Java tutorials), and documentation.  Focusing on introductory material that covers the basics of Java's architecture and design will be beneficial.\n\n4. **Practice with Quizzes and Exercises:**  Regular practice with quizzes and coding exercises will help identify and address knowledge gaps.  Focusing on questions that specifically test understanding of the JVM and compilation process is recommended.\n\n\nIn short, the user needs to move beyond rote memorization and develop a deeper, conceptual understanding of Java's architecture and execution model.\n"
+}
+
+### 2️⃣ Get All Study Plans
+GET http://localhost:8080/api/study-plans
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+
+### 3️⃣ Get Study Plan By ID
+GET http://localhost:8080/api/study-plans/2
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+
+### 4️⃣ Update Study Plan Status
+PATCH http://localhost:8080/api/study-plans/2/status
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+Content-Type: application/json
+
+{
+  "status": "completed"
+}
+
+### 2️⃣ Chat with AI tutor (context: user's quiz weaknesses)
+POST http://localhost:8080/api/ai-chat
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+Content-Type: application/json
+
+{
+  "userId": 9,
+  "message": "Can you explain platform independence in Java?"
+}

@@ -1,0 +1,81 @@
+2025-09-09T21:10:58.142+05:30 ERROR 19524 --- [topperfriendweb] [restartedMain] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Failed to bind properties under 'logging.level.org.hibernate.orm.jdbc.bind' to org.springframework.boot.logging.LogLevel:
+
+    Property: logging.level.org.hibernate.orm.jdbc.bind
+    Value: "OFF  # Hides parameter binding logs"
+    Origin: URL [file:application.properties] - 16:43
+    Reason: failed to convert java.lang.String to org.springframework.boot.logging.LogLevel (caused by java.lang.IllegalArgumentException: No enum constant org.springframework.boot.logging.LogLevel.OFF  # Hides parameter binding logs)
+
+Action:
+
+Update your application's configuration. The following values are valid:
+
+    DEBUG
+    ERROR
+    FATAL
+    INFO
+    OFF
+    TRACE
+    WARN
+
+2025-09-09T21:11:07.132+05:30 ERROR 26428 --- [topperfriendweb] [restartedMain] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Failed to bind properties under 'logging.level.org.hibernate.orm.jdbc.bind' to org.springframework.boot.logging.LogLevel:
+
+    Property: logging.level.org.hibernate.orm.jdbc.bind
+    Value: "OFF  # Hides parameter binding logs"
+    Origin: URL [file:application.properties] - 16:43
+    Reason: failed to convert java.lang.String to org.springframework.boot.logging.LogLevel (caused by java.lang.IllegalArgumentException: No enum constant org.springframework.boot.logging.LogLevel.OFF  # Hides parameter binding logs)
+
+Action:
+
+Update your application's configuration. The following values are valid:
+
+    DEBUG
+    ERROR
+    FATAL
+    INFO
+    OFF
+    TRACE
+    WARN
+
+2025-09-09T21:11:25.165+05:30 ERROR 10408 --- [topperfriendweb] [restartedMain] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Failed to bind properties under 'logging.level.org.hibernate.orm.jdbc.bind' to org.springframework.boot.logging.LogLevel:
+
+    Property: logging.level.org.hibernate.orm.jdbc.bind
+    Value: "OFF  # Hides parameter binding logs"
+    Origin: URL [file:application.properties] - 16:43
+    Reason: failed to convert java.lang.String to org.springframework.boot.logging.LogLevel (caused by java.lang.IllegalArgumentException: No enum constant org.springframework.boot.logging.LogLevel.OFF  # Hides parameter binding logs)
+
+Action:
+
+Update your application's configuration. The following values are valid:
+
+    DEBUG
+    ERROR
+    FATAL
+    INFO
+    OFF
+    TRACE
+    WARN
+
