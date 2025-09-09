@@ -3,18 +3,10 @@ POST http://localhost:8080/api/auth/register
 Content-Type: application/json
 
 {
+  "username": "tala",
   "name": "Mohammed Talha Ahmed",
-  "email": "trainedbot10k@example.com",
-  "password": "testuser"
-}
-
-### Login
-POST http://localhost:8080/api/auth/login
-Content-Type: application/json
-
-{
-  "email": "talha.codes970@gmail.com",
-  "password": "tolitoli"
+  "email": "trainedbot12k@gmail.com",
+  "password": "i"
 }
 
 ### Verify OTP
@@ -22,18 +14,18 @@ POST http://localhost:8080/api/auth/verify-otp
 Content-Type: application/json
 
 {
-  "email": "talha.codes970@gmail.com",
-  "code": "234571"
+  "email": "trainedbot12k@gmail.com",
+  "code": "441099"
 }
+
 
 ### Resend OTP
 POST http://localhost:8080/api/auth/resend-otp
 Content-Type: application/json
 
 {
-  "email": "talha.codes970@gmail.com"
+  "email": "trainedbot12k@gmail.com"
 }
-
 
 ### Onboarding (example)
 POST http://localhost:8080/api/auth/onboarding
@@ -46,6 +38,16 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wb
   "collegeName": "MJCET",
   "rollNumber": "17",
   "image": "https://res.cloudinary.com/demo/image/upload/sample.jpg"
+}
+
+
+### Login
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "talha.codes970@gmail.com",
+  "password": "tolitoli"
 }
 
 ### Create a new note (upload option)
@@ -76,6 +78,11 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wb
 GET http://localhost:8080/api/notes
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
 
+### Get all notes for logged-in user
+GET http://localhost:8080/api/notes/browse
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+Content-Type: application/json
+
 ### Get a single note by ID
 GET http://localhost:8080/api/notes/5
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
@@ -88,6 +95,11 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wb
 GET http://localhost:8080/api/notes/search?query=math
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
 
+### Browse All notes
+GET http://localhost:8080/api/notes/browse
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+
+
 ### Paginated notes
 GET http://localhost:8080/api/notes/page?page=1&size=5
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
@@ -99,6 +111,11 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wb
 ### Unlike a note
 DELETE http://localhost:8080/api/notes/2/like
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+
+### Get All Liked Notes
+GET http://localhost:8080/api/notes/liked
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+
 
 ### Save a note
 POST http://localhost:8080/api/notes/2/save

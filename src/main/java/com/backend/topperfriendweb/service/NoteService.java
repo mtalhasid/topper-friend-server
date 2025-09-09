@@ -147,12 +147,18 @@ public class NoteService {
         noteRepository.delete(note);
     }
 
-    public List<Note> getLikedNotes(Long userId) {
-        return noteRepository.findByLikedByUsersContainsOrderByCreatedAtDesc(userId);
+    public List<NoteDTO> getLikedNotes(Long userId) {
+        return noteRepository.findByLikedByUsersContainsOrderByCreatedAtDesc(userId)
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 
-    public List<Note> getSavedNotes(Long userId) {
-        return noteRepository.findBySavedByUsersContainsOrderByCreatedAtDesc(userId);
+    public List<NoteDTO> getSavedNotes(Long userId) {
+        return noteRepository.findBySavedByUsersContainsOrderByCreatedAtDesc(userId)
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 
     private NoteDTO convertToDTO(Note note) {

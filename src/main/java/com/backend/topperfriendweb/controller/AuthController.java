@@ -9,6 +9,7 @@ import com.backend.topperfriendweb.utils.JwtUtil;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -33,9 +34,13 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest req) {
         try {
-            Long userId = authService.register(req);
-            var resp = new RegisterResponse("User created successfully", true, userId);
-            return ResponseEntity.status(201).body(resp);
+            String message = authService.register(req); // Now returns String, not Long
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", message);
+            response.put("requiresVerification", true);
+
+            return ResponseEntity.status(200).body(response); // Changed to 200 OK
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.status(409).body(Map.of("message", ex.getMessage()));
         } catch (Exception ex) {
@@ -47,11 +52,20 @@ public class AuthController {
     @PostMapping("/verify-otp")
     public ResponseEntity<?> verifyOtp(@Valid @RequestBody VerifyOtpRequest req) {
         try {
-            boolean ok = authService.verifyOtp(req.getEmail(), req.getCode());
-            if (!ok) {
-                return ResponseEntity.status(400).body(Map.of("error", "Invalid or expired OTP code"));
-            }
-            return ResponseEntity.ok(Map.of("success", true, "message", "Email verified successfully"));
+            Long userId = authService.verifyOtp(req.getEmail(), req.getCode());
+
+            // Generate JWT token here in the controller
+            String token = jwtUtil.generateToken(req.getEmail());
+
+            // Return both userId and token
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Email verified successfully",
+                    "userId", userId,
+                    "token", token
+            ));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(400).body(Map.of("error", ex.getMessage()));
         } catch (Exception ex) {
             logger.error("OTP verification error", ex);
             return ResponseEntity.status(500).body(Map.of("error", "Internal server error"));

@@ -127,15 +127,25 @@ public class NoteController {
         }
     }
 
-    // Controller
+    // Replace these methods in your NoteController:
     @GetMapping("/saved")
-    public ResponseEntity<List<Note>> getSavedNotes(@AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(noteService.getSavedNotes(user.getId()));
+    public ResponseEntity<?> getSavedNotes() {
+        try {
+            User user = getLoggedInUser();
+            return ResponseEntity.ok(noteService.getSavedNotes(user.getId()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     @GetMapping("/liked")
-    public ResponseEntity<List<Note>> getLikedNotes(@AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(noteService.getLikedNotes(user.getId()));
+    public ResponseEntity<?> getLikedNotes() {
+        try {
+            User user = getLoggedInUser();
+            return ResponseEntity.ok(noteService.getLikedNotes(user.getId()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     // ✅ Like a note
