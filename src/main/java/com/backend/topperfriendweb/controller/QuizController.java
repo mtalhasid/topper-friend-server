@@ -21,7 +21,7 @@ public class QuizController {
     private final QuizRepository quizRepository;
 
     public QuizController(GeminiService geminiService, JwtUtil jwtUtil,
-            UserRepository userRepository, QuizRepository quizRepository) {
+                          UserRepository userRepository, QuizRepository quizRepository) {
         this.geminiService = geminiService;
         this.jwtUtil = jwtUtil;
         this.userRepository = userRepository;
@@ -47,24 +47,34 @@ public class QuizController {
             }
 
             if ("summarize".equals(action)) {
-                String summary = geminiService.summarize(text);
-                return ResponseEntity.ok(Map.of(
-                        "success", true,
-                        "result", summary,
-                        "type", "summary"));
+                try {
+                    String summary = geminiService.summarize(text);
+                    return ResponseEntity.ok(Map.of(
+                            "success", true,
+                            "result", summary,
+                            "type", "summary"));
+                } catch (Exception e) {
+                    return ResponseEntity.status(503).body(Map.of(
+                            "error", "AI service temporarily unavailable: " + e.getMessage()));
+                }
             } else if ("generate-quiz".equals(action)) {
-                List<Quiz> quizzes = geminiService.generateQuiz(text, user);
-                quizRepository.saveAll(quizzes);
+                try {
+                    List<Quiz> quizzes = geminiService.generateQuiz(text, user);
+                    quizRepository.saveAll(quizzes);
 
-                return ResponseEntity.ok(Map.of(
-                        "success", true,
-                        "quizzes", quizzes,
-                        "type", "quiz"));
+                    return ResponseEntity.ok(Map.of(
+                            "success", true,
+                            "quizzes", quizzes,
+                            "type", "quiz"));
+                } catch (Exception e) {
+                    return ResponseEntity.status(503).body(Map.of(
+                            "error", "Failed to generate quiz: " + e.getMessage()));
+                }
             }
 
             return ResponseEntity.badRequest().body(Map.of("error", "Invalid action"));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(500).body(Map.of("error", "Server error: " + e.getMessage()));
         }
     }
 
@@ -89,26 +99,39 @@ public class QuizController {
             @RequestBody Map<String, Object> body) {
 
         try {
-            // Get user from JWT
-            Long quizId = Long.valueOf((Integer) body.get("quizId"));
+            // FIX: Better handling of quizId conversion
+            Long quizId;
+            Object quizIdObj = body.get("quizId");
+            if (quizIdObj instanceof Integer) {
+                quizId = ((Integer) quizIdObj).longValue();
+            } else if (quizIdObj instanceof Long) {
+                quizId = (Long) quizIdObj;
+            } else if (quizIdObj instanceof String) {
+                quizId = Long.valueOf((String) quizIdObj);
+            } else {
+                return ResponseEntity.badRequest().body(Map.of("error", "Invalid quizId format"));
+            }
+
             Quiz quiz = quizRepository.findById(quizId)
                     .orElseThrow(() -> new RuntimeException("Quiz not found"));
 
-            // Instead of parsing JSON, just send AI text to Gemini for weakness analysis
-            String aiText = quiz.getQuestionsJson();
-            String weaknessSummary = geminiService.analyzeWeakness(aiText);
+            try {
+                String aiText = quiz.getQuestionsJson();
+                String weaknessSummary = geminiService.analyzeWeakness(aiText);
 
-            // Save weakness summary in DB
-            quiz.setWeaknessSummary(weaknessSummary);
-            quizRepository.save(quiz);
+                quiz.setWeaknessSummary(weaknessSummary);
+                quizRepository.save(quiz);
 
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "weaknessSummary", weaknessSummary));
+                return ResponseEntity.ok(Map.of(
+                        "success", true,
+                        "weaknessSummary", weaknessSummary));
+            } catch (Exception e) {
+                return ResponseEntity.status(503).body(Map.of(
+                        "error", "AI analysis service temporarily unavailable: " + e.getMessage()));
+            }
 
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(500).body(Map.of("error", "Server error: " + e.getMessage()));
         }
     }
-
 }

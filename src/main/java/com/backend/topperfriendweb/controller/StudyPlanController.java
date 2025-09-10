@@ -10,6 +10,7 @@ import com.backend.topperfriendweb.utils.JwtUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -118,4 +119,62 @@ public class StudyPlanController {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
     }
+    // Add to StudyPlanController.java
+// Update study plan title
+    @PatchMapping("/{id}/title")
+    public ResponseEntity<?> updateStudyPlanTitle(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body) {
+
+        try {
+            String token = authHeader.replace("Bearer ", "");
+            String email = jwtUtil.getEmailFromToken(token);
+            User user = userRepository.findByEmailIgnoreCase(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            String title = body.get("title");
+            if (title == null || title.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "title is required"));
+            }
+
+            StudyPlan plan = studyPlanRepository.findByIdAndUser(id, user)
+                    .orElseThrow(() -> new RuntimeException("Study plan not found"));
+
+            plan.setPdfTitle(title);
+            plan.setUpdatedAt(LocalDateTime.now());
+            studyPlanRepository.save(plan);
+
+            return ResponseEntity.ok(Map.of("success", true, "studyPlan", plan));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // Delete study plan
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteStudyPlan(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable Long id) {
+
+        try {
+            String token = authHeader.replace("Bearer ", "");
+            String email = jwtUtil.getEmailFromToken(token);
+            User user = userRepository.findByEmailIgnoreCase(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            StudyPlan plan = studyPlanRepository.findByIdAndUser(id, user)
+                    .orElseThrow(() -> new RuntimeException("Study plan not found"));
+
+            studyPlanRepository.delete(plan);
+
+            return ResponseEntity.ok(Map.of("success", true, "message", "Study plan deleted successfully"));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+
 }

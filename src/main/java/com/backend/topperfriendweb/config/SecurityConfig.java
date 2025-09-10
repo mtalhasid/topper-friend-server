@@ -38,6 +38,12 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/verify-otp").permitAll()
                         .requestMatchers("/api/auth/resend-otp").permitAll()
                         .requestMatchers("/api/auth/onboarding").permitAll()
+                        .requestMatchers("/api/auth/study-plans/").permitAll()
+                        .requestMatchers("/api/auth/my-collections/**").permitAll()
+                        .requestMatchers("/api/auth/my-collections").permitAll()
+                        .requestMatchers("/api/auth/study-plans/title").permitAll()
+
+
                         .anyRequest().permitAll());
                // .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -58,7 +64,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of("http://localhost:5173"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
 
