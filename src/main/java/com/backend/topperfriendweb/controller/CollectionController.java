@@ -6,6 +6,7 @@ import com.backend.topperfriendweb.dto.StudyPlanDTO;
 import com.backend.topperfriendweb.model.*;
 import com.backend.topperfriendweb.repository.*;
 import com.backend.topperfriendweb.utils.JwtUtil;
+import jakarta.transaction.Transactional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -223,6 +224,7 @@ public class CollectionController {
 
     // Remove item from collection
     @DeleteMapping("/{collectionId}/items/{itemType}/{itemId}")
+    @Transactional
     public ResponseEntity<?> removeItemFromCollection(
             @RequestHeader("Authorization") String authHeader,
             @PathVariable Long collectionId,

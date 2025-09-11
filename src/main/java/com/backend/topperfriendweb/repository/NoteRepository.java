@@ -24,6 +24,9 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
             "(:query IS NULL OR LOWER(n.title) LIKE LOWER(CONCAT('%', :query, '%')) OR :query MEMBER OF n.tags) " +
             "AND (:tag IS NULL OR :tag MEMBER OF n.tags)")
     List<Note> searchNotes(@Param("query") String query, @Param("tag") String tag);
+    @Query("SELECT COALESCE(SUM(n.likes), 0) FROM Note n WHERE n.userId = :userId")
+    Long getTotalLikesByUserId(@Param("userId") Long userId);
 
     long countByUserId(Long userId);
 }
+// Add this method to your existing NoteRepository

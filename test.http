@@ -1,3 +1,7 @@
+### -----------------------------
+### AUTH CONTROLLER ENDPOINTS
+### -----------------------------
+
 ### Register a new user
 POST http://localhost:8080/api/auth/register
 Content-Type: application/json
@@ -40,20 +44,51 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wb
   "image": "https://res.cloudinary.com/demo/image/upload/sample.jpg"
 }
 
-
 ### Login
 POST http://localhost:8080/api/auth/login
 Content-Type: application/json
 
 {
-  "email": "talha.codes970@gmail.com",
-  "password": "tolitoli"
+  "email": "talha.home970@gmail.com",
+  "password": "testuser"
 }
+
+
+
+
+
+### -----------------------------
+### USER CONTROLLER ENDPOINTS (/profiles and /leaderboards)
+### -----------------------------
+
+### Get all users (with onboarding completed)
+GET http://localhost:8080/api/users
+Authorization: Bearer <your_jwt_token>
+
+### Get user profile + notes by username
+GET http://localhost:8080/api/users/{username}
+Authorization: Bearer <your_jwt_token>
+
+### Search users by username or name
+GET http://localhost:8080/api/users/search?q=john
+Authorization: Bearer <your_jwt_token>
+
+### Get users by college
+GET http://localhost:8080/api/users/college/{collegeName}
+Authorization: Bearer <your_jwt_token>
+
+
+
+
+
+### -----------------------------
+### NOTE CONTROLLER ENDPOINTS (/my-notes and /browse-notes)
+### -----------------------------
 
 ### Create a new note (upload option)
 POST http://localhost:8080/api/notes
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+Authorization: Bearer <your_token_here>
 
 {
   "title": "Mathematics Notes",
@@ -62,101 +97,118 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wb
   "pdfOption": "upload"
 }
 
-### Create a new note (Google Drive link option)
+### Create a new note (link option)
 POST http://localhost:8080/api/notes
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+Authorization: Bearer <your_token_here>
 
 {
-  "title": "Physics Notes",
-  "pdfLink": "https://drive.google.com/file/d/1ABC123def456ghi789jkl/view",
-  "tags": ["physics", "mechanics"],
+  "title": "Linear Algebra - Lecture 1",
+  "pdfLink": "https://example.com/linear_algebra.pdf",
+  "tags": ["math", "linear-algebra"],
   "pdfOption": "link"
 }
 
-### Get all notes for logged-in user
+### Get All Notes (for logged-in user)
 GET http://localhost:8080/api/notes
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+Authorization: Bearer <your_token_here>
 
-### Get all notes for logged-in user
-GET http://localhost:8080/api/notes/browse
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
-Content-Type: application/json
+### Get Single Note by ID
+GET http://localhost:8080/api/notes/1
+Authorization: Bearer <your_token_here>
 
-### Get a single note by ID
-GET http://localhost:8080/api/notes/5
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
-
-### Delete a note
+### Delete Note
 DELETE http://localhost:8080/api/notes/1
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+Authorization: Bearer <your_token_here>
 
-### Search notes
-GET http://localhost:8080/api/notes/search?query=math
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+### Browse Notes (search + pagination)
+GET http://localhost:8080/api/notes/browse?query=spring&tag=java&page=0&limit=10
+Authorization: Bearer <your_token_here>
 
 ### Browse All notes
 GET http://localhost:8080/api/notes/browse
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
 
+### Search Notes
+GET http://localhost:8080/api/notes/search?query=algorithms&tag=dsa&page=1&limit=10
+Authorization: Bearer <your_token_here>
 
-### Paginated notes
-GET http://localhost:8080/api/notes/page?page=1&size=5
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+### Paginated Notes
+GET http://localhost:8080/api/notes/page?query=python&page=1&limit=10
+Authorization: Bearer <your_token_here>
 
-### Like a note
-POST http://localhost:8080/api/notes/2/like
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+### Get Saved Notes
+GET http://localhost:8080/api/notes/saved
+Authorization: Bearer <your_token_here>
 
-### Unlike a note
-DELETE http://localhost:8080/api/notes/2/like
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
-
-### Get All Liked Notes
+### Get Liked Notes
 GET http://localhost:8080/api/notes/liked
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+Authorization: Bearer <your_token_here>
+
+### Like Note
+POST http://localhost:8080/api/notes/1/like
+Authorization: Bearer <your_token_here>
+
+### Unlike Note
+DELETE http://localhost:8080/api/notes/1/like
+Authorization: Bearer <your_token_here>
+
+### Save Note
+POST http://localhost:8080/api/notes/1/save
+Authorization: Bearer <your_token_here>
+
+### Unsave Note
+DELETE http://localhost:8080/api/notes/1/save
+Authorization: Bearer <your_token_here>
 
 
-### Save a note
-POST http://localhost:8080/api/notes/2/save
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
 
-### Unsave a note
-DELETE http://localhost:8080/api/notes/2/save
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqYWNvYkBleGFtcGxlLmNvbSIsImlhdCI6MTc1NzM0MTQ0MCwiZXhwIjoxNzU3NDI3ODQwfQ.jhQLILgnVCPXrK1ZDGFOa76bGZU9gPzMeHtQKIKui3o
+
+
+### -----------------------------
+### QUIZ CONTROLLER ENDPOINTS (/quiz-generator)
+### -----------------------------
 
 ### Generate summary
 POST http://localhost:8080/api/quiz-generator
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
 Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0YWxoYS5ob21lOTcwQGdtYWlsLmNvbSIsImlhdCI6MTc1NzU1MTg4MiwiZXhwIjoxNzU3NjM4MjgyfQ.Jv7rWMuZ0yO49xkSZK1ls4PI14PHdVivPiYROitwxaw
 
 {
-  "text": "Spring Boot makes it easy to create stand-alone, production-grade Spring-based applications."
+  "text": "This is a sample input passage to summarize",
+  "action": "summarize"
 }
 
 ### Generate quiz
 POST http://localhost:8080/api/quiz-generator
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
 Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0YWxoYS5ob21lOTcwQGdtYWlsLmNvbSIsImlhdCI6MTc1NzU1MTg4MiwiZXhwIjoxNzU3NjM4MjgyfQ.Jv7rWMuZ0yO49xkSZK1ls4PI14PHdVivPiYROitwxaw
 
 {
-  "text": "Java is a high-level programming language. It supports OOP, multithreading, and platform independence.",
+  "text": "Newton's laws of motion and their applications...",
   "action": "generate-quiz"
 }
 
-### Get all quizzes for user
+### Get all quizzes of the logged-in user
 GET http://localhost:8080/api/quiz-generator
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0YWxoYS5ob21lOTcwQGdtYWlsLmNvbSIsImlhdCI6MTc1NzU0Njc1MCwiZXhwIjoxNzU3NjMzMTUwfQ.fIOMtmG8pTFH_Dwfv1V3Of6xHOoiasmOrqj6YsKDd2M
 
-### 3️⃣ Submit quiz answers and get weakness analysis
+### Submit quiz for weakness analysis
 POST http://localhost:8080/api/quiz-generator/submit
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
 Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0YWxoYS5ob21lOTcwQGdtYWlsLmNvbSIsImlhdCI6MTc1NzU1MTg4MiwiZXhwIjoxNzU3NjM4MjgyfQ.Jv7rWMuZ0yO49xkSZK1ls4PI14PHdVivPiYROitwxaw
 
 {
-  "quizId": 9,
-  "answers": [1, 2, 0]
+  "quizId": 17,
+  "answers": [0,1]
 }
+
+
+
+
+### -----------------------------
+### StUDY PLAN CONTROLLER ENDPOINTS (/study-plans)
+### -----------------------------
 
 ### 1️⃣ Generate New Study Plan
 POST http://localhost:8080/api/study-plans/generate
@@ -172,17 +224,38 @@ GET http://localhost:8080/api/study-plans
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
 
 ### 3️⃣ Get Study Plan By ID
-GET http://localhost:8080/api/study-plans/2
+GET http://localhost:8080/api/study-plans/1
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
 
 ### 4️⃣ Update Study Plan Status
-PATCH http://localhost:8080/api/study-plans/2/status
+PATCH http://localhost:8080/api/study-plans/1/status
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
 Content-Type: application/json
 
 {
-  "status": "completed"
+  "status": "COMPLETED"
 }
+
+### 5️⃣ Update Study Plan Title
+PATCH http://localhost:8080/api/study-plans/1/title
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+Content-Type: application/json
+
+{
+  "title": "Advanced Java Programming Study Plan"
+}
+
+### 6️⃣ Delete Study Plan
+DELETE http://localhost:8080/api/study-plans/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+
+
+
+
+
+### -----------------------------
+### AI CHATBOT CONTROLLER ENDPOINTS (study-plans/:id)
+### -----------------------------
 
 ### 2️⃣ Chat with AI tutor (context: user's quiz weaknesses)
 POST http://localhost:8080/api/ai-chat
@@ -193,3 +266,58 @@ Content-Type: application/json
   "userId": 9,
   "message": "Can you explain platform independence in Java?"
 }
+
+
+
+
+
+
+### -----------------------------
+### COLLECTIONS CONTROLLER ENDPOINTS
+### -----------------------------
+
+### 1️⃣ Create Collection
+POST http://localhost:8080/api/collections
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+Content-Type: application/json
+
+{
+  "title": "My Java Study Collection",
+  "description": "Collection of notes and study plans for Java programming"
+}
+
+### 2️⃣ Get All Collections
+GET http://localhost:8080/api/collections
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+
+### 3️⃣ Get Collection By ID
+GET http://localhost:8080/api/collections/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+
+### 4️⃣ Update Collection
+PATCH http://localhost:8080/api/collections/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+Content-Type: application/json
+
+{
+  "title": "Updated Collection Title",
+  "description": "Updated description"
+}
+
+### 5️⃣ Delete Collection
+DELETE http://localhost:8080/api/collections/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+
+### 6️⃣ Add Item to Collection
+POST http://localhost:8080/api/collections/1/items
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+Content-Type: application/json
+
+{
+  "itemType": "NOTE",
+  "itemId": 123
+}
+
+### 7️⃣ Remove Item from Collection
+DELETE http://localhost:8080/api/collections/1/items/NOTE/123
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs

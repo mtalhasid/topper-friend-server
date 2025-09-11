@@ -160,6 +160,10 @@ public class NoteService {
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
+    // Add this method to your existing NoteService class
+    public List<Note> getUserNotesByUserId(Long userId) {
+        return noteRepository.findByUserIdOrderByCreatedAtDesc(userId);
+    }
 
     private NoteDTO convertToDTO(Note note) {
         NoteDTO dto = new NoteDTO();

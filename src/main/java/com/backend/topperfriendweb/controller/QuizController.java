@@ -6,6 +6,9 @@ import com.backend.topperfriendweb.repository.QuizRepository;
 import com.backend.topperfriendweb.repository.UserRepository;
 import com.backend.topperfriendweb.service.GeminiService;
 import com.backend.topperfriendweb.utils.JwtUtil;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -59,18 +62,41 @@ public class QuizController {
                 }
             } else if ("generate-quiz".equals(action)) {
                 try {
-                    List<Quiz> quizzes = geminiService.generateQuiz(text, user);
-                    quizRepository.saveAll(quizzes);
+                    // Call Gemini service to generate quiz JSON
+                    String jsonResponse = geminiService.generateQuizJson(text);
+
+                    // Parse JSON array using Jackson
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    JsonNode quizArray;
+                    try {
+                        quizArray = objectMapper.readTree(jsonResponse);
+                        if (!quizArray.isArray()) {
+                            throw new RuntimeException("Gemini did not return a JSON array");
+                        }
+                    } catch (Exception e) {
+                        throw new RuntimeException("Gemini returned invalid JSON: " + jsonResponse);
+                    }
+
+                    // Create Quiz entity
+                    Quiz quiz = new Quiz();
+                    quiz.setUser(user);
+                    quiz.setTitle("Generated Quiz from Topic");
+                    quiz.setQuestionsJson(jsonResponse); // store JSON string directly
+                    quiz.setTotalQuestions(quizArray.size());
+
+                    // Save Quiz
+                    quizRepository.save(quiz);
 
                     return ResponseEntity.ok(Map.of(
                             "success", true,
-                            "quizzes", quizzes,
+                            "quizzes", List.of(quiz),
                             "type", "quiz"));
                 } catch (Exception e) {
                     return ResponseEntity.status(503).body(Map.of(
                             "error", "Failed to generate quiz: " + e.getMessage()));
                 }
             }
+
 
             return ResponseEntity.badRequest().body(Map.of("error", "Invalid action"));
         } catch (Exception e) {
@@ -99,7 +125,13 @@ public class QuizController {
             @RequestBody Map<String, Object> body) {
 
         try {
-            // FIX: Better handling of quizId conversion
+            // 1️⃣ Get user
+            String token = authHeader.replace("Bearer ", "");
+            String email = jwtUtil.getEmailFromToken(token);
+            User user = userRepository.findByEmailIgnoreCase(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // 2️⃣ Get quiz
             Long quizId;
             Object quizIdObj = body.get("quizId");
             if (quizIdObj instanceof Integer) {
@@ -115,23 +147,68 @@ public class QuizController {
             Quiz quiz = quizRepository.findById(quizId)
                     .orElseThrow(() -> new RuntimeException("Quiz not found"));
 
+            // 3️⃣ Get user answers from request
+            List<Integer> userAnswers;
             try {
-                String aiText = quiz.getQuestionsJson();
-                String weaknessSummary = geminiService.analyzeWeakness(aiText);
-
-                quiz.setWeaknessSummary(weaknessSummary);
-                quizRepository.save(quiz);
-
-                return ResponseEntity.ok(Map.of(
-                        "success", true,
-                        "weaknessSummary", weaknessSummary));
+                userAnswers = (List<Integer>) body.get("answers");
+                if (userAnswers == null) throw new RuntimeException("answers field is required");
             } catch (Exception e) {
-                return ResponseEntity.status(503).body(Map.of(
-                        "error", "AI analysis service temporarily unavailable: " + e.getMessage()));
+                return ResponseEntity.badRequest().body(Map.of("error", "Invalid answers format"));
             }
+
+            // 4️⃣ Parse questions JSON
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode questionsArray;
+            try {
+                questionsArray = objectMapper.readTree(quiz.getQuestionsJson());
+                if (!questionsArray.isArray()) {
+                    throw new RuntimeException("quiz questionsJson is not an array");
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to parse quiz questions JSON: " + e.getMessage());
+            }
+
+            // 5️⃣ Compute score
+            int score = 0;
+            int totalQuestions = questionsArray.size();
+            for (int i = 0; i < totalQuestions; i++) {
+                JsonNode questionNode = questionsArray.get(i);
+                int correctAnswer = questionNode.get("correctAnswer").asInt();
+                if (i < userAnswers.size() && userAnswers.get(i) == correctAnswer) {
+                    score++;
+                }
+            }
+
+            // 6️⃣ Generate weakness summary (only for wrong answers)
+            ArrayNode wrongQuestions = objectMapper.createArrayNode();
+            for (int i = 0; i < totalQuestions; i++) {
+                JsonNode questionNode = questionsArray.get(i);
+                int correctAnswer = questionNode.get("correctAnswer").asInt();
+                if (i >= userAnswers.size() || userAnswers.get(i) != correctAnswer) {
+                    wrongQuestions.add(questionNode);
+                }
+            }
+
+            String weaknessSummary = "";
+            if (wrongQuestions.size() > 0) {
+                weaknessSummary = geminiService.analyzeWeakness(wrongQuestions.toString());
+                quiz.setWeaknessSummary(weaknessSummary);
+            }
+
+            // 7️⃣ Save quiz with weakness summary
+            quizRepository.save(quiz);
+
+            // 8️⃣ Return response
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "score", score,
+                    "totalQuestions", totalQuestions,
+                    "weaknessSummary", weaknessSummary
+            ));
 
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", "Server error: " + e.getMessage()));
         }
     }
+
 }

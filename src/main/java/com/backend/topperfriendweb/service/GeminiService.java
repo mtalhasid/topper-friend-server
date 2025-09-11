@@ -3,6 +3,8 @@ package com.backend.topperfriendweb.service;
 import com.backend.topperfriendweb.model.Quiz;
 import com.backend.topperfriendweb.model.User;
 import com.backend.topperfriendweb.repository.QuizRepository;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -34,43 +36,25 @@ public class GeminiService {
         return callGemini(prompt);
     }
 
-    public List<Quiz> generateQuiz(String text, User user) {
-        try {
-            // Prompt AI to generate quiz in plain text / Markdown
-            String prompt = "Generate a quiz in plain text format with 2-3 multiple choice questions for: "
-                    + text
-                    + "\nFormat like this:\n"
-                    + "**Question 1:** What is...?\n"
-                    + "a) Option A\n"
-                    + "b) Option B\n"
-                    + "c) Option C\n"
-                    + "d) Option D\n"
-                    + "**Correct Answer:** a)\n\n"
-                    + "**Question 2:** Which...?\n"
-                    + "a) Option A\n"
-                    + "b) Option B\n"
-                    + "c) Option C\n"
-                    + "d) Option D\n"
-                    + "**Correct Answer:** b)";
+    // Add this method to GeminiService.java
+    public String generateQuizJson(String text) {
+        String prompt = "Generate a multiple-choice quiz in strict JSON format like this, Generate a quiz in strict JSON format ONLY. Do NOT include ```json or markdown formatting. Just raw JSON array.\n:\n" +
+                "[\n" +
+                "  {\n" +
+                "    \"question\": \"What is 2+2?\",\n" +
+                "    \"options\": [\"1\", \"2\", \"3\", \"4\"],\n" +
+                "    \"correctAnswer\": 3\n" +
+                "  },\n" +
+                "  {\n" +
+                "    \"question\": \"Which is the largest planet?\",\n" +
+                "    \"options\": [\"Earth\", \"Mars\", \"Jupiter\", \"Venus\"],\n" +
+                "    \"correctAnswer\": 2\n" +
+                "  }\n" +
+                "]\n\n" +
+                "Please generate 2-3 similar questions based on the following text:\n" + text;
 
-            // Call Gemini AI
-            String response = callGemini(prompt);
-
-            // Store AI response directly, no JSON parsing
-            Quiz quiz = new Quiz();
-            quiz.setUser(user);
-            quiz.setTitle("Generated Quiz from Summary");
-            quiz.setQuestionsJson(response); // raw Markdown/plain text
-            quiz.setTotalQuestions(2); // Adjust based on actual questions generated
-
-            // Save using instance repository
-            Quiz savedQuiz = quizRepository.save(quiz);
-
-            return List.of(savedQuiz);
-
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to generate quiz: " + e.getMessage(), e);
-        }
+        // Call Gemini AI
+        return callGemini(prompt);
     }
 
     private String callGemini(String prompt) {
