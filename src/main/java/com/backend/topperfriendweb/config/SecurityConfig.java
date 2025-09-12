@@ -37,15 +37,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/login").permitAll()
                         .requestMatchers("/api/auth/verify-otp").permitAll()
                         .requestMatchers("/api/auth/resend-otp").permitAll()
-                        .requestMatchers("/api/auth/onboarding").permitAll()
-                        .requestMatchers("/api/auth/study-plans/").permitAll()
-                        .requestMatchers("/api/auth/my-collections/**").permitAll()
-                        .requestMatchers("/api/auth/my-collections").permitAll()
-                        .requestMatchers("/api/auth/study-plans/title").permitAll()
-
-
-                        .anyRequest().permitAll());
-               // .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                        .anyRequest().authenticated())
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

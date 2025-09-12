@@ -1,17 +1,16 @@
 // src/main/java/com/backend/topperfriendweb/controller/AuthController.java
 package com.backend.topperfriendweb.controller;
 
-import com.backend.topperfriendweb.dto.*;
+import com.backend.topperfriendweb.dto.auth.*;
 import com.backend.topperfriendweb.model.User;
-import com.backend.topperfriendweb.repository.UserRepository;
 import com.backend.topperfriendweb.service.AuthService;
 import com.backend.topperfriendweb.utils.JwtUtil;
 import jakarta.validation.Valid;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataIntegrityViolationException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,17 +18,12 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
+@Validated
+@RequiredArgsConstructor
+@Slf4j
 public class AuthController {
     private final AuthService authService;
-    private final JwtUtil jwtUtil; 
-    private final UserRepository userRepository;
-    private final Logger logger = LoggerFactory.getLogger(AuthController.class);
-
-    public AuthController(AuthService authService, JwtUtil jwtUtil, UserRepository userRepository) {
-        this.authService = authService;
-        this.jwtUtil = jwtUtil;
-        this.userRepository = userRepository;
-    }
+    private final JwtUtil jwtUtil;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest req) {
@@ -44,7 +38,7 @@ public class AuthController {
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.status(409).body(Map.of("message", ex.getMessage()));
         } catch (Exception ex) {
-            logger.error("Registration error", ex);
+            log.error("Registration error", ex);
             return ResponseEntity.status(500).body(Map.of("message", "Registration failed"));
         }
     }
@@ -67,33 +61,33 @@ public class AuthController {
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.status(400).body(Map.of("error", ex.getMessage()));
         } catch (Exception ex) {
-            logger.error("OTP verification error", ex);
+            log.error("OTP verification error", ex);
             return ResponseEntity.status(500).body(Map.of("error", "Internal server error"));
         }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         LoginResponse response = authService.login(request.getEmail(), request.getPassword());
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/onboarding")
     public ResponseEntity<?> onboarding(@RequestHeader("Authorization") String authHeader,
-                                        @RequestBody OnboardingRequest request) {
+                                        @Valid @RequestBody OnboardingRequest request) {
         try {
-            logger.info("Received onboarding request for: {}", request.toString());
+            log.info("Received onboarding request for: {}", request.toString());
             String token = authHeader.replace("Bearer ", "");
-            logger.info("Token received: {}", token);
+            log.info("Token received: {}", token);
 
             String email = jwtUtil.getEmailFromToken(token);
-            logger.info("Email extracted from token: {}", email);
+            log.info("Email extracted from token: {}", email);
 
             User user = authService.getUserByEmail(email);
-            logger.info("User found: {}", user.getId());
+            log.info("User found: {}", user.getId());
 
             User updatedUser = authService.completeOnboarding(user.getId(), request);
-            logger.info("Onboarding completed for user: {}", updatedUser.getId());
+            log.info("Onboarding completed for user: {}", updatedUser.getId());
 
             // FIXED: Use HashMap instead of Map.of() to handle null values
             Map<String, Object> userResponse = new HashMap<>();
@@ -107,11 +101,10 @@ public class AuthController {
 
             return ResponseEntity.ok(Map.of("user", userResponse));
         } catch (IllegalArgumentException e) {
-            logger.error("Validation error in onboarding: {}", e.getMessage());
+            log.error("Validation error in onboarding: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            logger.error("Internal server error in onboarding: ", e);
-            e.printStackTrace();
+            log.error("Internal server error in onboarding: ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Internal Server Error: " + e.getMessage()));
         }
@@ -126,7 +119,7 @@ public class AuthController {
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.status(404).body(Map.of("error", ex.getMessage()));
         } catch (Exception ex) {
-            logger.error("Resend OTP error", ex);
+            log.error("Resend OTP error", ex);
             return ResponseEntity.status(500).body(Map.of("error", "Failed to resend OTP"));
         }
     }

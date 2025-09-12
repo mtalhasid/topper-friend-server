@@ -3,14 +3,14 @@ package com.backend.topperfriendweb.controller;
 import com.backend.topperfriendweb.dto.CreateNoteRequest;
 import com.backend.topperfriendweb.dto.NoteDTO;
 import com.backend.topperfriendweb.dto.PaginationResponse;
-import com.backend.topperfriendweb.model.Note;
 import com.backend.topperfriendweb.model.User;
 import com.backend.topperfriendweb.repository.UserRepository;
 import com.backend.topperfriendweb.service.NoteService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,13 +20,13 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/notes")
 @CrossOrigin(origins = "*")
+@RequiredArgsConstructor
+@Slf4j
 public class NoteController {
 
-    @Autowired
-    private NoteService noteService;
+    private final NoteService noteService;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
     // 🔹 helper to get logged-in user
     private User getLoggedInUser() {
@@ -38,7 +38,7 @@ public class NoteController {
 
     // ✅ Create note
     @PostMapping
-    public ResponseEntity<?> createNote(@RequestBody CreateNoteRequest request) {
+    public ResponseEntity<?> createNote(@Valid @RequestBody CreateNoteRequest request) {
         try {
             User user = getLoggedInUser();
             request.setUserId(user.getId());

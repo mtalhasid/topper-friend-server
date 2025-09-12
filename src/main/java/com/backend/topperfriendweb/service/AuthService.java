@@ -1,17 +1,13 @@
 package com.backend.topperfriendweb.service;
 
-import com.backend.topperfriendweb.dto.LoginResponse;
-import com.backend.topperfriendweb.dto.OnboardingRequest;
-import com.backend.topperfriendweb.dto.RegisterRequest;
-import com.backend.topperfriendweb.model.Otp;
+import com.backend.topperfriendweb.dto.auth.LoginResponse;
+import com.backend.topperfriendweb.dto.auth.OnboardingRequest;
+import com.backend.topperfriendweb.dto.auth.RegisterRequest;
 import com.backend.topperfriendweb.model.TempRegistration;
 import com.backend.topperfriendweb.model.User;
-import com.backend.topperfriendweb.repository.OtpRepository;
 import com.backend.topperfriendweb.repository.TempRegistrationRepository;
 import com.backend.topperfriendweb.repository.UserRepository;
 import com.backend.topperfriendweb.utils.JwtUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,22 +18,20 @@ import java.util.Random;
 @Service
 public class AuthService {
     private final UserRepository userRepository;
-    private final OtpRepository otpRepository;
-    private final TempRegistrationRepository tempRegistrationRepository; // ADD THIS
+    private final TempRegistrationRepository tempRegistrationRepository;
     private final PasswordEncoder passwordEncoder;
     private final MailjetService mailjetService;
-    private final Logger logger = LoggerFactory.getLogger(AuthService.class);
     private final JwtUtil jwtUtil;
 
     private static final int OTP_EXPIRY_MINUTES = 10;
 
-    // UPDATE CONSTRUCTOR TO INJECT TempRegistrationRepository
-    public AuthService(UserRepository userRepository, OtpRepository otpRepository,
-                       TempRegistrationRepository tempRegistrationRepository, // ADD THIS
-                       PasswordEncoder passwordEncoder, MailjetService mailjetService, JwtUtil jwtUtil) {
+    public AuthService(UserRepository userRepository,
+                       TempRegistrationRepository tempRegistrationRepository,
+                       PasswordEncoder passwordEncoder,
+                       MailjetService mailjetService,
+                       JwtUtil jwtUtil) {
         this.userRepository = userRepository;
-        this.otpRepository = otpRepository;
-        this.tempRegistrationRepository = tempRegistrationRepository; // ADD THIS
+        this.tempRegistrationRepository = tempRegistrationRepository;
         this.passwordEncoder = passwordEncoder;
         this.mailjetService = mailjetService;
         this.jwtUtil = jwtUtil;
@@ -88,17 +82,17 @@ public class AuthService {
         Optional<User> optionalUser = userRepository.findByEmailIgnoreCase(emailLower);
 
         if (optionalUser.isEmpty()) {
-            return new LoginResponse(false, "User not found");
+            return new LoginResponse(false, "User not found", null);
         }
 
         User user = optionalUser.get();
 
         if (user.getEmailVerified() == null) {
-            return new LoginResponse(false, "Email not verified");
+            return new LoginResponse(false, "Email not verified", null);
         }
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            return new LoginResponse(false, "Incorrect password");
+            return new LoginResponse(false, "Incorrect password", null);
         }
 
         String token = jwtUtil.generateToken(user.getEmail());

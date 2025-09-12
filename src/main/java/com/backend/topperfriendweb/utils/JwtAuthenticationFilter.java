@@ -1,6 +1,5 @@
 package com.backend.topperfriendweb.utils;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -16,14 +15,15 @@ import java.util.Collections;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+    private final JwtUtil jwtUtil;
 
-    @Autowired
-    private JwtUtil jwtUtil;
+    public JwtAuthenticationFilter(JwtUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
+    }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
-        // Skip JWT processing for public endpoints
         return path.startsWith("/api/auth/register") ||
                 path.startsWith("/api/auth/login") ||
                 path.startsWith("/api/auth/verify-otp") ||
@@ -50,8 +50,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
             } catch (Exception e) {
-                // invalid token → just continue without auth
-                System.out.println("Invalid JWT: " + e.getMessage());
+                // invalid token → continue without auth
             }
         }
 
