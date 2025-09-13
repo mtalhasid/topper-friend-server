@@ -1,180 +1,111 @@
 package com.backend.topperfriendweb.controller;
 
-import com.backend.topperfriendweb.model.StudyPlan;
-import com.backend.topperfriendweb.model.StudyPlanStatus;
+import com.backend.topperfriendweb.dto.*;
 import com.backend.topperfriendweb.model.User;
-import com.backend.topperfriendweb.repository.StudyPlanRepository;
 import com.backend.topperfriendweb.repository.UserRepository;
 import com.backend.topperfriendweb.service.StudyPlanService;
-import com.backend.topperfriendweb.utils.JwtUtil;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/study-plans")
+@RequiredArgsConstructor
+@Slf4j
 public class StudyPlanController {
 
     private final StudyPlanService studyPlanService;
-    private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
-    private final StudyPlanRepository studyPlanRepository;
 
-    public StudyPlanController(StudyPlanService studyPlanService, JwtUtil jwtUtil,
-                               UserRepository userRepository, StudyPlanRepository studyPlanRepository) {
-        this.studyPlanService = studyPlanService;
-        this.jwtUtil = jwtUtil;
-        this.userRepository = userRepository;
-        this.studyPlanRepository = studyPlanRepository;
+    // Helper to get logged-in user
+    private User getLoggedInUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = (String) auth.getPrincipal();
+        return userRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
     @PostMapping("/generate")
-    public ResponseEntity<?> generateStudyPlan(
-            @RequestHeader("Authorization") String authHeader) {
-
+    public ResponseEntity<?> generateStudyPlan() {
         try {
-            String token = authHeader.replace("Bearer ", "");
-            String email = jwtUtil.getEmailFromToken(token);
-            User user = userRepository.findByEmailIgnoreCase(email)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
-            // ✅ Create study plan from latest quiz (calls Gemini internally)
-            StudyPlan plan = studyPlanService.createStudyPlanFromLatestQuiz(user);
-
-            return ResponseEntity.ok(Map.of("success", true, "studyPlan", plan));
+            User user = getLoggedInUser();
+            StudyPlanDTO studyPlan = studyPlanService.createStudyPlanFromLatestQuiz(user);
+            return ResponseEntity.ok(Map.of("success", true, "studyPlan", studyPlan));
         } catch (Exception e) {
+            log.error("Error generating study plan", e);
             return ResponseEntity.status(500)
                     .body(Map.of("error", "Failed to create study plan: " + e.getMessage()));
         }
     }
 
-
-    // ✅ Get all study plans for current user
     @GetMapping
-    public ResponseEntity<?> getAllStudyPlans(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<?> getAllStudyPlans() {
         try {
-            String token = authHeader.replace("Bearer ", "");
-            String email = jwtUtil.getEmailFromToken(token);
-            User user = userRepository.findByEmailIgnoreCase(email)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
-            List<StudyPlan> plans = studyPlanRepository.findByUserId(user.getId());
-            return ResponseEntity.ok(Map.of("success", true, "studyPlans", plans));
+            User user = getLoggedInUser();
+            List<StudyPlanDTO> studyPlans = studyPlanService.getUserStudyPlans(user.getId());
+            return ResponseEntity.ok(Map.of("success", true, "studyPlans", studyPlans));
         } catch (Exception e) {
+            log.error("Error getting study plans", e);
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
     }
 
-    // ✅ Get a study plan by ID
     @GetMapping("/{id}")
-    public ResponseEntity<?> getStudyPlanById(
-            @RequestHeader("Authorization") String authHeader,
-            @PathVariable Long id) {
-
+    public ResponseEntity<?> getStudyPlanById(@PathVariable Long id) {
         try {
-            String token = authHeader.replace("Bearer ", "");
-            String email = jwtUtil.getEmailFromToken(token);
-            User user = userRepository.findByEmailIgnoreCase(email)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
-            StudyPlan plan = studyPlanRepository.findByIdAndUser(id, user)
-                    .orElseThrow(() -> new RuntimeException("Study plan not found"));
-
-            return ResponseEntity.ok(Map.of("success", true, "studyPlan", plan));
+            User user = getLoggedInUser();
+            StudyPlanDTO studyPlan = studyPlanService.getStudyPlanById(id, user.getId());
+            return ResponseEntity.ok(Map.of("success", true, "studyPlan", studyPlan));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+            log.error("Error getting study plan by ID", e);
+            return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
         }
     }
 
-    // ✅ Update study plan status
     @PatchMapping("/{id}/status")
     public ResponseEntity<?> updateStudyPlanStatus(
-            @RequestHeader("Authorization") String authHeader,
             @PathVariable Long id,
-            @RequestBody Map<String, String> body) {
-
+            @Valid @RequestBody UpdateStudyPlanStatusRequest request) {
         try {
-            String token = authHeader.replace("Bearer ", "");
-            String email = jwtUtil.getEmailFromToken(token);
-            User user = userRepository.findByEmailIgnoreCase(email)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
-            String statusStr = body.get("status");
-            if (statusStr == null || statusStr.isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("error", "status is required"));
-            }
-
-            StudyPlan plan = studyPlanRepository.findByIdAndUser(id, user)
-                    .orElseThrow(() -> new RuntimeException("Study plan not found"));
-
-            plan.setStatus(StudyPlanStatus.valueOf(statusStr));
-            studyPlanRepository.save(plan);
-
-            return ResponseEntity.ok(Map.of("success", true, "studyPlan", plan));
-
+            User user = getLoggedInUser();
+            StudyPlanDTO studyPlan = studyPlanService.updateStudyPlanStatus(id, request, user.getId());
+            return ResponseEntity.ok(Map.of("success", true, "studyPlan", studyPlan));
         } catch (Exception e) {
+            log.error("Error updating study plan status", e);
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
     }
-    // Add to StudyPlanController.java
-// Update study plan title
+
     @PatchMapping("/{id}/title")
     public ResponseEntity<?> updateStudyPlanTitle(
-            @RequestHeader("Authorization") String authHeader,
             @PathVariable Long id,
-            @RequestBody Map<String, String> body) {
-
+            @Valid @RequestBody UpdateStudyPlanTitleRequest request) {
         try {
-            String token = authHeader.replace("Bearer ", "");
-            String email = jwtUtil.getEmailFromToken(token);
-            User user = userRepository.findByEmailIgnoreCase(email)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
-            String title = body.get("title");
-            if (title == null || title.isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("error", "title is required"));
-            }
-
-            StudyPlan plan = studyPlanRepository.findByIdAndUser(id, user)
-                    .orElseThrow(() -> new RuntimeException("Study plan not found"));
-
-            plan.setPdfTitle(title);
-            plan.setUpdatedAt(LocalDateTime.now());
-            studyPlanRepository.save(plan);
-
-            return ResponseEntity.ok(Map.of("success", true, "studyPlan", plan));
-
+            User user = getLoggedInUser();
+            StudyPlanDTO studyPlan = studyPlanService.updateStudyPlanTitle(id, request, user.getId());
+            return ResponseEntity.ok(Map.of("success", true, "studyPlan", studyPlan));
         } catch (Exception e) {
+            log.error("Error updating study plan title", e);
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
     }
 
-    // Delete study plan
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteStudyPlan(
-            @RequestHeader("Authorization") String authHeader,
-            @PathVariable Long id) {
-
+    public ResponseEntity<?> deleteStudyPlan(@PathVariable Long id) {
         try {
-            String token = authHeader.replace("Bearer ", "");
-            String email = jwtUtil.getEmailFromToken(token);
-            User user = userRepository.findByEmailIgnoreCase(email)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
-            StudyPlan plan = studyPlanRepository.findByIdAndUser(id, user)
-                    .orElseThrow(() -> new RuntimeException("Study plan not found"));
-
-            studyPlanRepository.delete(plan);
-
+            User user = getLoggedInUser();
+            studyPlanService.deleteStudyPlan(id, user.getId());
             return ResponseEntity.ok(Map.of("success", true, "message", "Study plan deleted successfully"));
-
         } catch (Exception e) {
+            log.error("Error deleting study plan", e);
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
     }
-
-
 }

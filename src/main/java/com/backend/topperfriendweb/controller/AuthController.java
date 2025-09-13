@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.HashMap;
@@ -73,15 +75,14 @@ public class AuthController {
     }
 
     @PostMapping("/onboarding")
-    public ResponseEntity<?> onboarding(@RequestHeader("Authorization") String authHeader,
-                                        @Valid @RequestBody OnboardingRequest request) {
+    public ResponseEntity<?> onboarding(@Valid @RequestBody OnboardingRequest request) {
         try {
             log.info("Received onboarding request for: {}", request.toString());
-            String token = authHeader.replace("Bearer ", "");
-            log.info("Token received: {}", token);
-
-            String email = jwtUtil.getEmailFromToken(token);
-            log.info("Email extracted from token: {}", email);
+            
+            // Get user from SecurityContext (consistent with other controllers)
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String email = (String) auth.getPrincipal();
+            log.info("Email from SecurityContext: {}", email);
 
             User user = authService.getUserByEmail(email);
             log.info("User found: {}", user.getId());

@@ -2,6 +2,7 @@
 package com.backend.topperfriendweb.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import java.net.URI;
@@ -12,6 +13,7 @@ import java.util.Base64;
 import java.util.Map;
 
 @Service
+@Slf4j
 public class MailjetService {
     private final String apiKey;
     private final String apiSecret;

@@ -1,37 +1,33 @@
-// src/main/java/com/backend/topperfriendweb/controller/UserController.java
 package com.backend.topperfriendweb.controller;
 
-import com.backend.topperfriendweb.model.Note;
+import com.backend.topperfriendweb.dto.UserProfileDTO;
 import com.backend.topperfriendweb.model.User;
-import com.backend.topperfriendweb.repository.UserRepository;
-import com.backend.topperfriendweb.service.NoteService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.backend.topperfriendweb.service.UserService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/users")
-@CrossOrigin(origins = "*")
+@RequiredArgsConstructor
+@Slf4j
 public class UserController {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserService userService;
 
-    @Autowired
-    private NoteService noteService;
 
     // Get all users with completed onboarding
     @GetMapping
     public ResponseEntity<?> getAllUsers() {
         try {
-            List<User> users = userRepository.findByOnboardingCompletedTrue();
+            List<User> users = userService.getAllUsersWithCompletedOnboarding();
             return ResponseEntity.ok(users);
         } catch (Exception e) {
+            log.error("Error getting all users", e);
             return ResponseEntity.status(500).body(Map.of("error", "Failed to fetch users"));
         }
     }
@@ -40,27 +36,13 @@ public class UserController {
     @GetMapping("/{username}")
     public ResponseEntity<?> getUserProfile(@PathVariable String username) {
         try {
-            Optional<User> userOptional = userRepository.findByUsername(username);
-
-            if (userOptional.isEmpty() || !userOptional.get().getOnboardingCompleted()) {
-                return ResponseEntity.status(404).body(Map.of("error", "User not found"));
-            }
-
-            User user = userOptional.get();
-
-            // Get user's notes
-            List<Note> userNotes = noteService.getUserNotesByUserId(user.getId());
-
-            // Create response with user info + notes
-            Map<String, Object> response = new HashMap<>();
-            response.put("user", user);
-            response.put("notes", userNotes);
-            response.put("totalNotes", userNotes.size());
-            response.put("totalLikes", userNotes.stream().mapToInt(Note::getLikes).sum());
-
-            return ResponseEntity.ok(response);
-
+            UserProfileDTO userProfile = userService.getUserProfileByUsername(username);
+            return ResponseEntity.ok(userProfile);
+        } catch (RuntimeException e) {
+            log.error("Error getting user profile", e);
+            return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
+            log.error("Error getting user profile", e);
             return ResponseEntity.status(500).body(Map.of("error", "Failed to fetch user profile"));
         }
     }
@@ -69,9 +51,10 @@ public class UserController {
     @GetMapping("/search")
     public ResponseEntity<?> searchUsers(@RequestParam String q) {
         try {
-            List<User> users = userRepository.findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCase(q, q);
+            List<User> users = userService.searchUsers(q);
             return ResponseEntity.ok(users);
         } catch (Exception e) {
+            log.error("Error searching users", e);
             return ResponseEntity.status(500).body(Map.of("error", "Failed to search users"));
         }
     }
@@ -80,9 +63,10 @@ public class UserController {
     @GetMapping("/college/{collegeName}")
     public ResponseEntity<?> getUsersByCollege(@PathVariable String collegeName) {
         try {
-            List<User> users = userRepository.findByCollegeNameContainingIgnoreCase(collegeName);
+            List<User> users = userService.getUsersByCollege(collegeName);
             return ResponseEntity.ok(users);
         } catch (Exception e) {
+            log.error("Error getting users by college", e);
             return ResponseEntity.status(500).body(Map.of("error", "Failed to fetch users by college"));
         }
     }

@@ -1,11 +1,10 @@
 package com.backend.topperfriendweb.controller;
 
-import com.backend.topperfriendweb.dto.CollectionItemDTO;
-import com.backend.topperfriendweb.dto.NoteDTO;
-import com.backend.topperfriendweb.dto.StudyPlanDTO;
-import com.backend.topperfriendweb.model.*;
-import com.backend.topperfriendweb.repository.*;
-import jakarta.transaction.Transactional;
+import com.backend.topperfriendweb.dto.*;
+import com.backend.topperfriendweb.model.User;
+import com.backend.topperfriendweb.repository.UserRepository;
+import com.backend.topperfriendweb.service.CollectionService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -22,13 +21,10 @@ import java.util.Map;
 @Slf4j
 public class CollectionController {
 
-    private final CollectionRepository collectionRepository;
-    private final CollectionItemRepository collectionItemRepository;
+    private final CollectionService collectionService;
     private final UserRepository userRepository;
-    private final NoteRepository noteRepository;
-    private final StudyPlanRepository studyPlanRepository;
 
-    // Helper to get logged-in user (consistent with NoteController)
+    // Helper to get logged-in user (consistent with other controllers)
     private User getLoggedInUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = (String) auth.getPrincipal();
@@ -38,21 +34,13 @@ public class CollectionController {
 
     // Create collection
     @PostMapping
-    public ResponseEntity<?> createCollection(@RequestBody Map<String, String> request) {
+    public ResponseEntity<?> createCollection(@Valid @RequestBody CreateCollectionRequest request) {
         try {
             User user = getLoggedInUser();
-
-            String title = request.get("title");
-            String description = request.get("description");
-
-            Collection collection = new Collection();
-            collection.setTitle(title);
-            collection.setDescription(description);
-            collection.setUser(user);
-
-            Collection savedCollection = collectionRepository.save(collection);
-            return ResponseEntity.ok(Map.of("success", true, "collection", savedCollection));
+            CollectionDTO collection = collectionService.createCollection(request, user);
+            return ResponseEntity.ok(Map.of("success", true, "collection", collection));
         } catch (Exception e) {
+            log.error("Error creating collection", e);
             return ResponseEntity.badRequest().body(Map.of("success", false, "error", e.getMessage()));
         }
     }
@@ -62,10 +50,10 @@ public class CollectionController {
     public ResponseEntity<?> getUserCollections() {
         try {
             User user = getLoggedInUser();
-
-            List<Collection> collections = collectionRepository.findByUser(user);
+            List<CollectionDTO> collections = collectionService.getUserCollections(user);
             return ResponseEntity.ok(Map.of("success", true, "collections", collections));
         } catch (Exception e) {
+            log.error("Error getting user collections", e);
             return ResponseEntity.badRequest().body(Map.of("success", false, "error", e.getMessage()));
         }
     }
@@ -75,74 +63,31 @@ public class CollectionController {
     public ResponseEntity<?> getCollectionById(@PathVariable Long id) {
         try {
             User user = getLoggedInUser();
-
-            Collection collection = collectionRepository.findByIdAndUser(id, user)
-                    .orElseThrow(() -> new RuntimeException("Collection not found"));
-
-            List<CollectionItem> items = collectionItemRepository.findByCollectionId(id);
-
-            List<CollectionItemDTO> enrichedItems = items.stream().map(item -> {
-                CollectionItemDTO dto = new CollectionItemDTO();
-                dto.setId(item.getId());
-                dto.setItemType(item.getItemType());
-                dto.setAddedAt(item.getAddedAt());
-
-                if ("NOTE".equalsIgnoreCase(item.getItemType())) {
-                    noteRepository.findById(item.getItemId()).ifPresent(note -> {
-                        NoteDTO noteDTO = new NoteDTO();
-                        noteDTO.set_id(note.getId().toString());
-                        noteDTO.setPostgresUserId(note.getUserId());
-                        noteDTO.setTitle(note.getTitle());
-                        noteDTO.setPdfLink(note.getPdfLink());
-                        noteDTO.setTags(note.getTags());
-                        noteDTO.setLikes(note.getLikes());
-                        noteDTO.setCreatedAt(note.getCreatedAt());
-                        noteDTO.setUpdatedAt(note.getUpdatedAt());
-                        noteDTO.setUsername(note.getUsername());
-                        noteDTO.setLikedByUsers(note.getLikedByUsers());
-                        noteDTO.setSavedByUsers(note.getSavedByUsers());
-                        dto.setNote(noteDTO);
-                    });
-                } else if ("STUDY_PLAN".equalsIgnoreCase(item.getItemType())) {
-                    studyPlanRepository.findById(item.getItemId()).ifPresent(sp -> {
-                        dto.setStudyPlan(new StudyPlanDTO(sp));
-                    });
-                }
-                return dto;
-            }).toList();
-
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "collection", collection,
-                    "items", enrichedItems
-            ));
+            CollectionDTO collection = collectionService.getCollectionById(id, user);
+            return ResponseEntity.ok(Map.of("success", true, "collection", collection));
+        } catch (RuntimeException e) {
+            log.error("Error getting collection by ID", e);
+            return ResponseEntity.status(404).body(Map.of("success", false, "error", e.getMessage()));
         } catch (Exception e) {
+            log.error("Error getting collection by ID", e);
             return ResponseEntity.badRequest().body(Map.of("success", false, "error", e.getMessage()));
         }
     }
-
 
     // Update collection
     @PatchMapping("/{id}")
     public ResponseEntity<?> updateCollection(
             @PathVariable Long id,
-            @RequestBody Map<String, String> request) {
+            @Valid @RequestBody UpdateCollectionRequest request) {
         try {
             User user = getLoggedInUser();
-
-            Collection collection = collectionRepository.findByIdAndUser(id, user)
-                    .orElseThrow(() -> new RuntimeException("Collection not found"));
-
-            if (request.containsKey("title")) {
-                collection.setTitle(request.get("title"));
-            }
-            if (request.containsKey("description")) {
-                collection.setDescription(request.get("description"));
-            }
-
-            Collection updatedCollection = collectionRepository.save(collection);
-            return ResponseEntity.ok(Map.of("success", true, "collection", updatedCollection));
+            CollectionDTO collection = collectionService.updateCollection(id, request, user);
+            return ResponseEntity.ok(Map.of("success", true, "collection", collection));
+        } catch (RuntimeException e) {
+            log.error("Error updating collection", e);
+            return ResponseEntity.status(404).body(Map.of("success", false, "error", e.getMessage()));
         } catch (Exception e) {
+            log.error("Error updating collection", e);
             return ResponseEntity.badRequest().body(Map.of("success", false, "error", e.getMessage()));
         }
     }
@@ -152,13 +97,13 @@ public class CollectionController {
     public ResponseEntity<?> deleteCollection(@PathVariable Long id) {
         try {
             User user = getLoggedInUser();
-
-            Collection collection = collectionRepository.findByIdAndUser(id, user)
-                    .orElseThrow(() -> new RuntimeException("Collection not found"));
-
-            collectionRepository.delete(collection);
+            collectionService.deleteCollection(id, user);
             return ResponseEntity.ok(Map.of("success", true, "message", "Collection deleted successfully"));
+        } catch (RuntimeException e) {
+            log.error("Error deleting collection", e);
+            return ResponseEntity.status(404).body(Map.of("success", false, "error", e.getMessage()));
         } catch (Exception e) {
+            log.error("Error deleting collection", e);
             return ResponseEntity.badRequest().body(Map.of("success", false, "error", e.getMessage()));
         }
     }
@@ -167,49 +112,35 @@ public class CollectionController {
     @PostMapping("/{collectionId}/items")
     public ResponseEntity<?> addItemToCollection(
             @PathVariable Long collectionId,
-            @RequestBody Map<String, Object> request) {
+            @Valid @RequestBody AddItemToCollectionRequest request) {
         try {
             User user = getLoggedInUser();
-
-            Collection collection = collectionRepository.findByIdAndUser(collectionId, user)
-                    .orElseThrow(() -> new RuntimeException("Collection not found"));
-
-            String itemType = (String) request.get("itemType");
-            Long itemId = Long.valueOf(request.get("itemId").toString());
-
-            // Check if item already exists in collection
-            if (collectionItemRepository.existsByCollectionIdAndItemTypeAndItemId(collectionId, itemType, itemId)) {
-                return ResponseEntity.badRequest().body(Map.of("success", false, "error", "Item already in collection"));
-            }
-
-            CollectionItem item = new CollectionItem();
-            item.setCollection(collection);
-            item.setItemType(itemType);
-            item.setItemId(itemId);
-
-            CollectionItem savedItem = collectionItemRepository.save(item);
-            return ResponseEntity.ok(Map.of("success", true, "item", savedItem));
+            CollectionItemDTO item = collectionService.addItemToCollection(collectionId, request, user);
+            return ResponseEntity.ok(Map.of("success", true, "item", item));
+        } catch (RuntimeException e) {
+            log.error("Error adding item to collection", e);
+            return ResponseEntity.badRequest().body(Map.of("success", false, "error", e.getMessage()));
         } catch (Exception e) {
+            log.error("Error adding item to collection", e);
             return ResponseEntity.badRequest().body(Map.of("success", false, "error", e.getMessage()));
         }
     }
 
     // Remove item from collection
     @DeleteMapping("/{collectionId}/items/{itemType}/{itemId}")
-    @Transactional
     public ResponseEntity<?> removeItemFromCollection(
             @PathVariable Long collectionId,
             @PathVariable String itemType,
             @PathVariable Long itemId) {
         try {
             User user = getLoggedInUser();
-
-            collectionRepository.findByIdAndUser(collectionId, user)
-                    .orElseThrow(() -> new RuntimeException("Collection not found"));
-
-            collectionItemRepository.deleteByCollectionIdAndItemTypeAndItemId(collectionId, itemType, itemId);
+            collectionService.removeItemFromCollection(collectionId, itemType, itemId, user);
             return ResponseEntity.ok(Map.of("success", true, "message", "Item removed from collection"));
+        } catch (RuntimeException e) {
+            log.error("Error removing item from collection", e);
+            return ResponseEntity.status(404).body(Map.of("success", false, "error", e.getMessage()));
         } catch (Exception e) {
+            log.error("Error removing item from collection", e);
             return ResponseEntity.badRequest().body(Map.of("success", false, "error", e.getMessage()));
         }
     }

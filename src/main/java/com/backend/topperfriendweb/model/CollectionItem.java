@@ -4,16 +4,11 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.Builder;
 
 import java.time.LocalDateTime;
+
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 @Entity
 @Table(name = "collection_items")
 public class CollectionItem {
@@ -22,8 +17,8 @@ public class CollectionItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "collection_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "collection_id", nullable = false)
     @JsonBackReference // Back reference to prevent circular JSON
     private Collection collection;
 
@@ -35,6 +30,17 @@ public class CollectionItem {
     @Column(nullable = false)
     private Long itemId;
 
-    @Builder.Default
+    @Column(name = "added_at", nullable = false)
     private LocalDateTime addedAt = LocalDateTime.now();
+
+    // Constructors
+    public CollectionItem() {}
+
+    // Pre-persist method
+    @PrePersist
+    protected void onCreate() {
+        if (addedAt == null) {
+            addedAt = LocalDateTime.now();
+        }
+    }
 }

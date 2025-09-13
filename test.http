@@ -7,10 +7,10 @@ POST http://localhost:8080/api/auth/register
 Content-Type: application/json
 
 {
-  "username": "yaseen",
-  "name": "Yaseen",
-  "email": "y@gmail.com",
-  "password": "ysin"
+  "username": "ibra",
+  "name": "ibra",
+  "email": "l@gmail.com",
+  "password": "lll"
 }
 
 ### Verify OTP
@@ -18,8 +18,8 @@ POST http://localhost:8080/api/auth/verify-otp
 Content-Type: application/json
 
 {
-  "email": "y@gmail.com",
-  "code": "770118"
+  "email": "l@gmail.com",
+  "code": "398441"
 }
 
 
@@ -34,13 +34,13 @@ Content-Type: application/json
 ### Onboarding (example)
 POST http://localhost:8080/api/auth/onboarding
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5QGdtYWlsLmNvbSIsImlhdCI6MTc1NzY4OTQzNSwiZXhwIjoxNzU3Nzc1ODM1fQ.HcU3jkSVyYRa-Fm5QrsUb82iZhJ7gsuZ8UKM21yQCI0
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsQGdtYWlsLmNvbSIsImlhdCI6MTc1NzcxOTkwNywiZXhwIjoxNzU3ODA2MzA3fQ.ZDVR7AgjPYTgJVA1oyMNRxo4uuIa2eSNmZjpoy3fyzg",
 
 {
-  "username": "ysin",
-  "name": "Yaseen",
+  "username": "ibra",
+  "name": "Ibra",
   "collegeName": "MJCET",
-  "rollNumber": "18",
+  "rollNumber": "1",
   "image": "https://res.cloudinary.com/demo/image/upload/sample.jpg"
 }
 
@@ -63,11 +63,11 @@ Content-Type: application/json
 
 ### Get all users (with onboarding completed)
 GET http://localhost:8080/api/users
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJpYmFhZEBnbWFpbC5jb20iLCJpYXQiOjE3NTc2ODg5MTUsImV4cCI6MTc1Nzc3NTMxNX0.yTQeBgQqVRk0eM4abcZuhOPoF9_gpJB4Xf6r-HLlZoE
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsQGdtYWlsLmNvbSIsImlhdCI6MTc1NzcxOTkwNywiZXhwIjoxNzU3ODA2MzA3fQ.ZDVR7AgjPYTgJVA1oyMNRxo4uuIa2eSNmZjpoy3fyzg",
 
 ### Get user profile + notes by username
-GET http://localhost:8080/api/users/{username}
-Authorization: Bearer <your_jwt_token>
+GET http://localhost:8080/api/users/1talhaa11
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsQGdtYWlsLmNvbSIsImlhdCI6MTc1NzcxOTkwNywiZXhwIjoxNzU3ODA2MzA3fQ.ZDVR7AgjPYTgJVA1oyMNRxo4uuIa2eSNmZjpoy3fyzg",
 
 ### Search users by username or name
 GET http://localhost:8080/api/users/search?q=john
@@ -88,10 +88,10 @@ Authorization: Bearer <your_jwt_token>
 ### Create a new note (upload option)
 POST http://localhost:8080/api/notes
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5QGdtYWlsLmNvbSIsImlhdCI6MTc1NzY4OTQzNSwiZXhwIjoxNzU3Nzc1ODM1fQ.HcU3jkSVyYRa-Fm5QrsUb82iZhJ7gsuZ8UKM21yQCI0
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsQGdtYWlsLmNvbSIsImlhdCI6MTc1NzcxOTkwNywiZXhwIjoxNzU3ODA2MzA3fQ.ZDVR7AgjPYTgJVA1oyMNRxo4uuIa2eSNmZjpoy3fyzg",
 
 {
-  "title": "BEE Notes",
+  "title": "MJCET Notes",
   "pdfLink": "https://res.cloudinary.com/demo/image/upload/math_notes.pdf",
   "tags": ["BEE", "EEE"],
   "pdfOption": "upload"
@@ -100,10 +100,10 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5QGdtYWlsLmNvbSIsImlhdCI6M
 ### Create a new note (link option)
 POST http://localhost:8080/api/notes
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5QGdtYWlsLmNvbSIsImlhdCI6MTc1NzY4OTQzNSwiZXhwIjoxNzU3Nzc1ODM1fQ.HcU3jkSVyYRa-Fm5QrsUb82iZhJ7gsuZ8UKM21yQCI0
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsQGdtYWlsLmNvbSIsImlhdCI6MTc1NzcxOTkwNywiZXhwIjoxNzU3ODA2MzA3fQ.ZDVR7AgjPYTgJVA1oyMNRxo4uuIa2eSNmZjpoy3fyzg",
 
 {
-  "title": "Linear - Lecture 9",
+  "title": "AS - Lecture 9",
   "pdfLink": "https://example.com/linear_algebra.pdf",
   "tags": ["M3", "M2"],
   "pdfOption": "link"
@@ -111,11 +111,11 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5QGdtYWlsLmNvbSIsImlhdCI6M
 
 ### Get All Notes (for logged-in user)
 GET http://localhost:8080/api/notes
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5QGdtYWlsLmNvbSIsImlhdCI6MTc1NzY4OTQzNSwiZXhwIjoxNzU3Nzc1ODM1fQ.HcU3jkSVyYRa-Fm5QrsUb82iZhJ7gsuZ8UKM21yQCI0
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsQGdtYWlsLmNvbSIsImlhdCI6MTc1NzcxOTkwNywiZXhwIjoxNzU3ODA2MzA3fQ.ZDVR7AgjPYTgJVA1oyMNRxo4uuIa2eSNmZjpoy3fyzg",
 
 ### Get Single Note by ID
-GET http://localhost:8080/api/notes/14
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5QGdtYWlsLmNvbSIsImlhdCI6MTc1NzY4OTQzNSwiZXhwIjoxNzU3Nzc1ODM1fQ.HcU3jkSVyYRa-Fm5QrsUb82iZhJ7gsuZ8UKM21yQCI0
+GET http://localhost:8080/api/notes/19
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsQGdtYWlsLmNvbSIsImlhdCI6MTc1NzcxOTkwNywiZXhwIjoxNzU3ODA2MzA3fQ.ZDVR7AgjPYTgJVA1oyMNRxo4uuIa2eSNmZjpoy3fyzg",
 
 ### Delete Note
 DELETE http://localhost:8080/api/notes/14
@@ -127,7 +127,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5QGdtYWlsLmNvbSIsImlhdCI6M
 
 ### Browse All notes
 GET http://localhost:8080/api/notes/browse
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5QGdtYWlsLmNvbSIsImlhdCI6MTc1NzY4OTQzNSwiZXhwIjoxNzU3Nzc1ODM1fQ.HcU3jkSVyYRa-Fm5QrsUb82iZhJ7gsuZ8UKM21yQCI0
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsQGdtYWlsLmNvbSIsImlhdCI6MTc1NzcxOTkwNywiZXhwIjoxNzU3ODA2MzA3fQ.ZDVR7AgjPYTgJVA1oyMNRxo4uuIa2eSNmZjpoy3fyzg",
 
 ### Search Notes
 GET http://localhost:8080/api/notes/search?query=algorithms&tag=dsa&page=1&limit=10
@@ -139,15 +139,15 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5QGdtYWlsLmNvbSIsImlhdCI6M
 
 ### Get Saved Notes
 GET http://localhost:8080/api/notes/saved
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5QGdtYWlsLmNvbSIsImlhdCI6MTc1NzY4OTQzNSwiZXhwIjoxNzU3Nzc1ODM1fQ.HcU3jkSVyYRa-Fm5QrsUb82iZhJ7gsuZ8UKM21yQCI0
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsQGdtYWlsLmNvbSIsImlhdCI6MTc1NzcxOTkwNywiZXhwIjoxNzU3ODA2MzA3fQ.ZDVR7AgjPYTgJVA1oyMNRxo4uuIa2eSNmZjpoy3fyzg",
 
 ### Get Liked Notes
 GET http://localhost:8080/api/notes/liked
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5QGdtYWlsLmNvbSIsImlhdCI6MTc1NzY4OTQzNSwiZXhwIjoxNzU3Nzc1ODM1fQ.HcU3jkSVyYRa-Fm5QrsUb82iZhJ7gsuZ8UKM21yQCI0
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsQGdtYWlsLmNvbSIsImlhdCI6MTc1NzcxOTkwNywiZXhwIjoxNzU3ODA2MzA3fQ.ZDVR7AgjPYTgJVA1oyMNRxo4uuIa2eSNmZjpoy3fyzg",
 
 ### Like Note
 POST http://localhost:8080/api/notes/2/like
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5QGdtYWlsLmNvbSIsImlhdCI6MTc1NzY4OTQzNSwiZXhwIjoxNzU3Nzc1ODM1fQ.HcU3jkSVyYRa-Fm5QrsUb82iZhJ7gsuZ8UKM21yQCI0
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsQGdtYWlsLmNvbSIsImlhdCI6MTc1NzcxOTkwNywiZXhwIjoxNzU3ODA2MzA3fQ.ZDVR7AgjPYTgJVA1oyMNRxo4uuIa2eSNmZjpoy3fyzg",
 
 ### Unlike Note
 DELETE http://localhost:8080/api/notes/2/like
@@ -155,7 +155,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5QGdtYWlsLmNvbSIsImlhdCI6M
 
 ### Save Note
 POST http://localhost:8080/api/notes/3/save
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5QGdtYWlsLmNvbSIsImlhdCI6MTc1NzY4OTQzNSwiZXhwIjoxNzU3Nzc1ODM1fQ.HcU3jkSVyYRa-Fm5QrsUb82iZhJ7gsuZ8UKM21yQCI0
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsQGdtYWlsLmNvbSIsImlhdCI6MTc1NzcxOTkwNywiZXhwIjoxNzU3ODA2MzA3fQ.ZDVR7AgjPYTgJVA1oyMNRxo4uuIa2eSNmZjpoy3fyzg",
 
 ### Unsave Note
 DELETE http://localhost:8080/api/notes/2/save
@@ -172,34 +172,34 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5QGdtYWlsLmNvbSIsImlhdCI6M
 ### Generate summary
 POST http://localhost:8080/api/quiz-generator
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0YWxoYS5ob21lOTcwQGdtYWlsLmNvbSIsImlhdCI6MTc1NzU1MTg4MiwiZXhwIjoxNzU3NjM4MjgyfQ.Jv7rWMuZ0yO49xkSZK1ls4PI14PHdVivPiYROitwxaw
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsQGdtYWlsLmNvbSIsImlhdCI6MTc1NzcxOTkwNywiZXhwIjoxNzU3ODA2MzA3fQ.ZDVR7AgjPYTgJVA1oyMNRxo4uuIa2eSNmZjpoy3fyzg",
 
 {
-  "text": "This is a sample input passage to summarize",
+  "text": "Wikipedia is hosted by the Wikimedia Foundation, a non-profit organization that also hosts a range of other projects.",
   "action": "summarize"
 }
 
 ### Generate quiz
 POST http://localhost:8080/api/quiz-generator
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0YWxoYS5ob21lOTcwQGdtYWlsLmNvbSIsImlhdCI6MTc1NzU1MTg4MiwiZXhwIjoxNzU3NjM4MjgyfQ.Jv7rWMuZ0yO49xkSZK1ls4PI14PHdVivPiYROitwxaw
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsQGdtYWlsLmNvbSIsImlhdCI6MTc1NzcxOTkwNywiZXhwIjoxNzU3ODA2MzA3fQ.ZDVR7AgjPYTgJVA1oyMNRxo4uuIa2eSNmZjpoy3fyzg",
 
 {
-  "text": "Newton's laws of motion and their applications...",
+  "text": "Java SpringBoot",
   "action": "generate-quiz"
 }
 
 ### Get all quizzes of the logged-in user
 GET http://localhost:8080/api/quiz-generator
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0YWxoYS5ob21lOTcwQGdtYWlsLmNvbSIsImlhdCI6MTc1NzU0Njc1MCwiZXhwIjoxNzU3NjMzMTUwfQ.fIOMtmG8pTFH_Dwfv1V3Of6xHOoiasmOrqj6YsKDd2M
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsQGdtYWlsLmNvbSIsImlhdCI6MTc1NzcxOTkwNywiZXhwIjoxNzU3ODA2MzA3fQ.ZDVR7AgjPYTgJVA1oyMNRxo4uuIa2eSNmZjpoy3fyzg",
 
 ### Submit quiz for weakness analysis
 POST http://localhost:8080/api/quiz-generator/submit
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0YWxoYS5ob21lOTcwQGdtYWlsLmNvbSIsImlhdCI6MTc1NzU1MTg4MiwiZXhwIjoxNzU3NjM4MjgyfQ.Jv7rWMuZ0yO49xkSZK1ls4PI14PHdVivPiYROitwxaw
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsQGdtYWlsLmNvbSIsImlhdCI6MTc1NzcxOTkwNywiZXhwIjoxNzU3ODA2MzA3fQ.ZDVR7AgjPYTgJVA1oyMNRxo4uuIa2eSNmZjpoy3fyzg",
 
 {
-  "quizId": 17,
+  "quizId": 24,
   "answers": [0,1]
 }
 
@@ -212,7 +212,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0YWxoYS5ob21lOTcwQGdtYWlsL
 
 ### 1️⃣ Generate New Study Plan
 POST http://localhost:8080/api/study-plans/generate
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsQGdtYWlsLmNvbSIsImlhdCI6MTc1NzcxOTkwNywiZXhwIjoxNzU3ODA2MzA3fQ.ZDVR7AgjPYTgJVA1oyMNRxo4uuIa2eSNmZjpoy3fyzg",
 Content-Type: application/json
 
 {
@@ -259,12 +259,12 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wb
 
 ### 2️⃣ Chat with AI tutor (context: user's quiz weaknesses)
 POST http://localhost:8080/api/ai-chat
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wbGUuY29tIiwiaWF0IjoxNzU3NDE0Mzk5LCJleHAiOjE3NTc1MDA3OTl9.acTQeC6h9pIujklgnvGiUntAYtZ_kCXljmfiOv7-PPs
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsQGdtYWlsLmNvbSIsImlhdCI6MTc1NzcxOTkwNywiZXhwIjoxNzU3ODA2MzA3fQ.ZDVR7AgjPYTgJVA1oyMNRxo4uuIa2eSNmZjpoy3fyzg",
 Content-Type: application/json
 
 {
-  "userId": 9,
-  "message": "Can you explain platform independence in Java?"
+  "userId": 35,
+  "message": "Can you explain what is a Prisma?"
 }
 
 
@@ -278,7 +278,7 @@ Content-Type: application/json
 
 ### 1️⃣ Create Collection
 POST http://localhost:8080/api/collections
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5QGdtYWlsLmNvbSIsImlhdCI6MTc1NzY4OTQzNSwiZXhwIjoxNzU3Nzc1ODM1fQ.HcU3jkSVyYRa-Fm5QrsUb82iZhJ7gsuZ8UKM21yQCI0
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsQGdtYWlsLmNvbSIsImlhdCI6MTc1NzcxOTkwNywiZXhwIjoxNzU3ODA2MzA3fQ.ZDVR7AgjPYTgJVA1oyMNRxo4uuIa2eSNmZjpoy3fyzg",
 Content-Type: application/json
 
 {
@@ -288,15 +288,15 @@ Content-Type: application/json
 
 ### 2️⃣ Get All Collections
 GET http://localhost:8080/api/collections
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5QGdtYWlsLmNvbSIsImlhdCI6MTc1NzY4OTQzNSwiZXhwIjoxNzU3Nzc1ODM1fQ.HcU3jkSVyYRa-Fm5QrsUb82iZhJ7gsuZ8UKM21yQCI0
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsQGdtYWlsLmNvbSIsImlhdCI6MTc1NzcxOTkwNywiZXhwIjoxNzU3ODA2MzA3fQ.ZDVR7AgjPYTgJVA1oyMNRxo4uuIa2eSNmZjpoy3fyzg",
 
 ### 3️⃣ Get Collection By ID
-GET http://localhost:8080/api/collections/5
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5QGdtYWlsLmNvbSIsImlhdCI6MTc1NzY4OTQzNSwiZXhwIjoxNzU3Nzc1ODM1fQ.HcU3jkSVyYRa-Fm5QrsUb82iZhJ7gsuZ8UKM21yQCI0
+GET http://localhost:8080/api/collections/7
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsQGdtYWlsLmNvbSIsImlhdCI6MTc1NzcxOTkwNywiZXhwIjoxNzU3ODA2MzA3fQ.ZDVR7AgjPYTgJVA1oyMNRxo4uuIa2eSNmZjpoy3fyzg",
 
 ### 4️⃣ Update Collection
-PATCH http://localhost:8080/api/collections/5
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5QGdtYWlsLmNvbSIsImlhdCI6MTc1NzY4OTQzNSwiZXhwIjoxNzU3Nzc1ODM1fQ.HcU3jkSVyYRa-Fm5QrsUb82iZhJ7gsuZ8UKM21yQCI0
+PATCH http://localhost:8080/api/collections/7
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsQGdtYWlsLmNvbSIsImlhdCI6MTc1NzcxOTkwNywiZXhwIjoxNzU3ODA2MzA3fQ.ZDVR7AgjPYTgJVA1oyMNRxo4uuIa2eSNmZjpoy3fyzg",
 Content-Type: application/json
 
 {
@@ -309,8 +309,8 @@ DELETE http://localhost:8080/api/collections/1
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5QGdtYWlsLmNvbSIsImlhdCI6MTc1NzY4OTQzNSwiZXhwIjoxNzU3Nzc1ODM1fQ.HcU3jkSVyYRa-Fm5QrsUb82iZhJ7gsuZ8UKM21yQCI0
 
 ### 6️⃣ Add Item to Collection
-POST http://localhost:8080/api/collections/5/items
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5QGdtYWlsLmNvbSIsImlhdCI6MTc1NzY4OTQzNSwiZXhwIjoxNzU3Nzc1ODM1fQ.HcU3jkSVyYRa-Fm5QrsUb82iZhJ7gsuZ8UKM21yQCI0
+POST http://localhost:8080/api/collections/7/items
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsQGdtYWlsLmNvbSIsImlhdCI6MTc1NzcxOTkwNywiZXhwIjoxNzU3ODA2MzA3fQ.ZDVR7AgjPYTgJVA1oyMNRxo4uuIa2eSNmZjpoy3fyzg",
 Content-Type: application/json
 
 {
@@ -319,5 +319,5 @@ Content-Type: application/json
 }
 
 ### 7️⃣ Remove Item from Collection
-DELETE http://localhost:8080/api/collections/5/items/NOTE/123
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5QGdtYWlsLmNvbSIsImlhdCI6MTc1NzY4OTQzNSwiZXhwIjoxNzU3Nzc1ODM1fQ.HcU3jkSVyYRa-Fm5QrsUb82iZhJ7gsuZ8UKM21yQCI0
+DELETE http://localhost:8080/api/collections/7/items/NOTE/123
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsQGdtYWlsLmNvbSIsImlhdCI6MTc1NzcxOTkwNywiZXhwIjoxNzU3ODA2MzA3fQ.ZDVR7AgjPYTgJVA1oyMNRxo4uuIa2eSNmZjpoy3fyzg",
