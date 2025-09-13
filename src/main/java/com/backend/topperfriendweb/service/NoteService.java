@@ -1,4 +1,3 @@
-// src/main/java/com/backend/topperfriendweb/service/NoteService.java
 package com.backend.topperfriendweb.service;
 
 import com.backend.topperfriendweb.dto.CreateNoteRequest;
@@ -9,10 +8,10 @@ import com.backend.topperfriendweb.model.User;
 import com.backend.topperfriendweb.repository.NoteRepository;
 import com.backend.topperfriendweb.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -54,7 +53,6 @@ public class NoteService {
 
     private String processGoogleDriveLink(String url) {
         if (url.contains("drive.google.com")) {
-            // Extract file ID logic
             java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("[\\w-]{25,}");
             java.util.regex.Matcher matcher = pattern.matcher(url);
             if (matcher.find()) {
@@ -64,30 +62,25 @@ public class NoteService {
         return url;
     }
 
-    public List<NoteDTO> getUserNotes(Long userId) {
-        return noteRepository.findByUserIdOrderByCreatedAtDesc(userId)
-                .stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
-    }
+    // FAST VERSION - USES RAW SQL WITH CURRENT USER'S LIKE/SAVE STATUS
+    public PaginationResponse<NoteDTO> browseNotes(String query, String tag, Integer page, Integer limit, Long currentUserId) {
+        int offset = (page - 1) * limit;
 
-    public PaginationResponse<NoteDTO> browseNotes(String query, String tag, Integer page, Integer limit) {
-        Pageable pageable = PageRequest.of(page - 1, limit);
+        // SINGLE RAW SQL QUERY WITH USER'S LIKE/SAVE STATUS
+        List<Object[]> rawResults = noteRepository.findNotesWithUserStatus(query, tag, currentUserId, limit, offset);
 
-        List<Note> notes = noteRepository.searchNotes(query, tag);
-        long total = notes.size();
-
-        // Manual pagination since we're using custom query
-        List<NoteDTO> paginatedNotes = notes.stream()
-                .skip((page - 1) * (long) limit)
-                .limit(limit)
-                .map(this::convertToDTO)
+        List<NoteDTO> notes = rawResults.stream()
+                .map(raw -> convertRawToDTO(raw, currentUserId))
                 .collect(Collectors.toList());
 
-        List<String> allTags = noteRepository.findAllDistinctTags();
+        // FAST COUNT
+        Long total = noteRepository.countNotesRaw(query, tag);
+
+        // FAST TAGS
+        List<String> allTags = noteRepository.findAllTagsFast();
 
         PaginationResponse<NoteDTO> response = new PaginationResponse<>();
-        response.setNotes(paginatedNotes);
+        response.setNotes(notes);
         response.setTags(allTags);
 
         PaginationResponse.PaginationInfo pagination = new PaginationResponse.PaginationInfo();
@@ -99,6 +92,49 @@ public class NoteService {
         response.setPagination(pagination);
 
         return response;
+    }
+
+    // CONVERT RAW SQL RESULT TO DTO WITH USER'S LIKE/SAVE STATUS
+    private NoteDTO convertRawToDTO(Object[] raw, Long currentUserId) {
+        NoteDTO dto = new NoteDTO();
+        dto.set_id(raw[0].toString());
+        dto.setPostgresUserId(((Number) raw[1]).longValue());
+        dto.setTitle((String) raw[2]);
+        dto.setPdfLink((String) raw[3]);
+        dto.setLikes(((Number) raw[4]).intValue());
+        dto.setCreatedAt(((java.sql.Timestamp) raw[5]).toLocalDateTime());
+        dto.setUpdatedAt(((java.sql.Timestamp) raw[6]).toLocalDateTime());
+        dto.setUsername((String) raw[7]);
+
+        // Parse tags from comma-separated string
+        String tagsStr = (String) raw[8];
+        if (tagsStr == null || tagsStr.trim().isEmpty()) {
+            dto.setTags(List.of());
+        } else {
+            dto.setTags(Arrays.asList(tagsStr.split(",")));
+        }
+
+        // Set user's like/save status based on SQL results
+        Boolean userLiked = raw.length > 9 ? (Boolean) raw[9] : false;
+        Boolean userSaved = raw.length > 10 ? (Boolean) raw[10] : false;
+
+        // For frontend compatibility, populate arrays with just current user if they liked/saved
+        if (currentUserId != null) {
+            dto.setLikedByUsers(userLiked ? List.of(currentUserId) : List.of());
+            dto.setSavedByUsers(userSaved ? List.of(currentUserId) : List.of());
+        } else {
+            dto.setLikedByUsers(List.of());
+            dto.setSavedByUsers(List.of());
+        }
+
+        return dto;
+    }
+
+    public List<NoteDTO> getUserNotes(Long userId) {
+        List<Object[]> rawResults = noteRepository.findUserNotesRaw(userId);
+        return rawResults.stream()
+                .map(raw -> convertRawToDTO(raw, userId))
+                .collect(Collectors.toList());
     }
 
     public void toggleLike(Long noteId, Long userId) {
@@ -129,7 +165,6 @@ public class NoteService {
         noteRepository.save(note);
     }
 
-    // Add this method to your NoteService class
     public NoteDTO getNoteById(Long noteId) {
         Note note = noteRepository.findById(noteId)
                 .orElseThrow(() -> new RuntimeException("Note not found"));
@@ -148,23 +183,24 @@ public class NoteService {
     }
 
     public List<NoteDTO> getLikedNotes(Long userId) {
-        return noteRepository.findByLikedByUsersContainsOrderByCreatedAtDesc(userId)
-                .stream()
-                .map(this::convertToDTO)
+        List<Object[]> rawResults = noteRepository.findLikedNotesRaw(userId);
+        return rawResults.stream()
+                .map(raw -> convertRawToDTO(raw, userId))
                 .collect(Collectors.toList());
     }
 
     public List<NoteDTO> getSavedNotes(Long userId) {
-        return noteRepository.findBySavedByUsersContainsOrderByCreatedAtDesc(userId)
-                .stream()
-                .map(this::convertToDTO)
+        List<Object[]> rawResults = noteRepository.findSavedNotesRaw(userId);
+        return rawResults.stream()
+                .map(raw -> convertRawToDTO(raw, userId))
                 .collect(Collectors.toList());
     }
-    // Add this method to your existing NoteService class
+
     public List<Note> getUserNotesByUserId(Long userId) {
         return noteRepository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
+    // FULL DTO CONVERSION (ONLY FOR SINGLE NOTE DETAILS)
     private NoteDTO convertToDTO(Note note) {
         NoteDTO dto = new NoteDTO();
         dto.set_id(note.getId().toString());

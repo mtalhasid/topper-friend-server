@@ -42,7 +42,7 @@ public class Note {
     @Column(nullable = false, length = 2048)
     private String pdfLink;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "note_tags", joinColumns = @JoinColumn(name = "note_id"))
     @Column(name = "tag")
     @Builder.Default

@@ -1,4 +1,3 @@
-// src/main/java/com/backend/topperfriendweb/dto/NoteDTO.java
 package com.backend.topperfriendweb.dto;
 
 import java.time.LocalDateTime;
@@ -10,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class NoteDTO {
+public class FeedNoteDTO {
     private String _id;
     private Long postgresUserId;
     private String title;
@@ -20,6 +19,6 @@ public class NoteDTO {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String username;
-    private List<Long> likedByUsers;
-    private List<Long> savedByUsers;
+    private Boolean userLiked;
+    private Boolean userSaved;
 }

@@ -25,10 +25,8 @@ import java.util.Map;
 public class NoteController {
 
     private final NoteService noteService;
-
     private final UserRepository userRepository;
 
-    // 🔹 helper to get logged-in user
     private User getLoggedInUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = (String) auth.getPrincipal();
@@ -36,7 +34,14 @@ public class NoteController {
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
-    // ✅ Create note
+    private Long getCurrentUserId() {
+        try {
+            return getLoggedInUser().getId();
+        } catch (Exception e) {
+            return null; // User not logged in
+        }
+    }
+
     @PostMapping
     public ResponseEntity<?> createNote(@Valid @RequestBody CreateNoteRequest request) {
         try {
@@ -49,7 +54,6 @@ public class NoteController {
         }
     }
 
-    // ✅ Get all notes for logged-in user
     @GetMapping
     public ResponseEntity<?> getNotes() {
         try {
@@ -61,18 +65,16 @@ public class NoteController {
         }
     }
 
-    // ✅ Get single note by ID
     @GetMapping("/{noteId}")
     public ResponseEntity<?> getNoteById(@PathVariable Long noteId) {
         try {
-            NoteDTO note = noteService.getNoteById(noteId); // ✅ only one argument
+            NoteDTO note = noteService.getNoteById(noteId);
             return ResponseEntity.ok(note);
         } catch (RuntimeException e) {
             return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
         }
     }
 
-    // ✅ Delete note
     @DeleteMapping("/{noteId}")
     public ResponseEntity<?> deleteNote(@PathVariable Long noteId) {
         try {
@@ -84,7 +86,6 @@ public class NoteController {
         }
     }
 
-    // ✅ Browse notes (search + pagination)
     @GetMapping("/browse")
     public ResponseEntity<?> browseNotes(
             @RequestParam(required = false) String query,
@@ -92,7 +93,8 @@ public class NoteController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int limit) {
         try {
-            PaginationResponse<NoteDTO> results = noteService.browseNotes(query, tag, page, limit);
+            Long currentUserId = getCurrentUserId(); // Get current user ID
+            PaginationResponse<NoteDTO> results = noteService.browseNotes(query, tag, page, limit, currentUserId);
             return ResponseEntity.ok(results);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -106,7 +108,8 @@ public class NoteController {
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer limit) {
         try {
-            PaginationResponse<NoteDTO> results = noteService.browseNotes(query, tag, page, limit);
+            Long currentUserId = getCurrentUserId();
+            PaginationResponse<NoteDTO> results = noteService.browseNotes(query, tag, page, limit, currentUserId);
             return ResponseEntity.ok(results);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -120,19 +123,20 @@ public class NoteController {
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer limit) {
         try {
-            PaginationResponse<NoteDTO> results = noteService.browseNotes(query, tag, page, limit);
+            Long currentUserId = getCurrentUserId();
+            PaginationResponse<NoteDTO> results = noteService.browseNotes(query, tag, page, limit, currentUserId);
             return ResponseEntity.ok(results);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
-    // Replace these methods in your NoteController:
     @GetMapping("/saved")
     public ResponseEntity<?> getSavedNotes() {
         try {
             User user = getLoggedInUser();
-            return ResponseEntity.ok(noteService.getSavedNotes(user.getId()));
+            List<NoteDTO> notes = noteService.getSavedNotes(user.getId());
+            return ResponseEntity.ok(notes);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
@@ -142,13 +146,13 @@ public class NoteController {
     public ResponseEntity<?> getLikedNotes() {
         try {
             User user = getLoggedInUser();
-            return ResponseEntity.ok(noteService.getLikedNotes(user.getId()));
+            List<NoteDTO> notes = noteService.getLikedNotes(user.getId());
+            return ResponseEntity.ok(notes);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
-    // ✅ Like a note
     @PostMapping("/{noteId}/like")
     public ResponseEntity<?> likeNote(@PathVariable Long noteId) {
         User user = getLoggedInUser();
@@ -156,15 +160,13 @@ public class NoteController {
         return ResponseEntity.ok(Map.of("message", "Note liked successfully"));
     }
 
-    // ✅ Unlike a note
     @DeleteMapping("/{noteId}/like")
     public ResponseEntity<?> unlikeNote(@PathVariable Long noteId) {
         User user = getLoggedInUser();
-        noteService.toggleLike(noteId, user.getId()); // toggle removes if already liked
+        noteService.toggleLike(noteId, user.getId());
         return ResponseEntity.ok(Map.of("message", "Note unliked successfully"));
     }
 
-    // ✅ Save a note
     @PostMapping("/{noteId}/save")
     public ResponseEntity<?> saveNote(@PathVariable Long noteId) {
         User user = getLoggedInUser();
@@ -172,12 +174,10 @@ public class NoteController {
         return ResponseEntity.ok(Map.of("message", "Note saved successfully"));
     }
 
-    // ✅ Unsave a note
     @DeleteMapping("/{noteId}/save")
     public ResponseEntity<?> unsaveNote(@PathVariable Long noteId) {
         User user = getLoggedInUser();
-        noteService.toggleSave(noteId, user.getId()); // toggle removes if already saved
+        noteService.toggleSave(noteId, user.getId());
         return ResponseEntity.ok(Map.of("message", "Note unsaved successfully"));
     }
-
 }
