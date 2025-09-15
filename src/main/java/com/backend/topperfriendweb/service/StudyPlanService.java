@@ -3,6 +3,7 @@ package com.backend.topperfriendweb.service;
 import com.backend.topperfriendweb.dto.studyplan.StudyPlanDTO;
 import com.backend.topperfriendweb.dto.studyplan.UpdateStudyPlanStatusRequest;
 import com.backend.topperfriendweb.dto.studyplan.UpdateStudyPlanTitleRequest;
+import com.backend.topperfriendweb.model.Quiz;
 import com.backend.topperfriendweb.model.StudyPlan;
 import com.backend.topperfriendweb.model.StudyPlanStatus;
 import com.backend.topperfriendweb.model.User;
@@ -28,10 +29,14 @@ public class StudyPlanService {
     @Transactional
     public StudyPlanDTO createStudyPlanFromLatestQuiz(User user) {
         try {
-            // Get latest quiz weakness
-            String weakness = quizRepository.findTopByUserIdOrderByCreatedAtDesc(user.getId())
-                    .map(q -> q.getWeaknessSummary())
-                    .orElse("No weakness recorded yet.");
+            // Get latest quiz (not just weakness)
+            Quiz latestQuiz = quizRepository.findTopByUserIdOrderByCreatedAtDesc(user.getId())
+                    .orElseThrow(() -> new RuntimeException("No quiz found to create study plan from"));
+
+            String weakness = latestQuiz.getWeaknessSummary();
+            if (weakness == null || weakness.isEmpty()) {
+                weakness = "No weakness analysis available.";
+            }
 
             // Generate 4-week study plan tasks using AI
             String tasks = geminiService.generateStudyPlanTasks(weakness);
@@ -39,6 +44,7 @@ public class StudyPlanService {
             // Create StudyPlan
             StudyPlan plan = new StudyPlan();
             plan.setUser(user);
+            plan.setQuiz(latestQuiz); // ADD THIS LINE - Link the quiz!
             plan.setTasks(tasks);
             plan.setStatus(StudyPlanStatus.active);
 

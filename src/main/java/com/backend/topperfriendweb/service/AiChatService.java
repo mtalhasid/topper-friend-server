@@ -1,5 +1,6 @@
 package com.backend.topperfriendweb.service;
 
+import com.backend.topperfriendweb.model.StudyPlan;
 import com.backend.topperfriendweb.model.User;
 import com.backend.topperfriendweb.repository.QuizRepository;
 import com.backend.topperfriendweb.repository.StudyPlanRepository;
@@ -9,17 +10,20 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
 import java.util.Map;
+
 @Service
 public class AiChatService {
 
     private final QuizRepository quizRepository;
+    private final StudyPlanRepository studyPlanRepository;
     private final WebClient webClient;
 
     @Value("${gemini.apiKey}")
     private String apiKey;
 
-    public AiChatService(QuizRepository quizRepository, WebClient.Builder builder) {
+    public AiChatService(QuizRepository quizRepository, StudyPlanRepository studyPlanRepository, WebClient.Builder builder) {
         this.quizRepository = quizRepository;
+        this.studyPlanRepository = studyPlanRepository;
         this.webClient = builder
                 .baseUrl("https://generativelanguage.googleapis.com/v1beta")
                 .build();
@@ -34,6 +38,24 @@ public class AiChatService {
         String prompt = "You are an AI tutor. The user has these weaknesses: \n"
                 + weakness + "\nAnswer their question/help them accordingly.\nUser: " + message;
 
+        return callGeminiAPI(prompt);
+    }
+
+    // NEW METHOD - Add this
+    public String chatWithStudyPlanWeakness(User user, String message, Long studyPlanId) {
+        StudyPlan studyPlan = studyPlanRepository.findById(studyPlanId)
+                .orElseThrow(() -> new RuntimeException("Study plan not found"));
+
+        String weakness = studyPlan.getQuiz().getWeaknessSummary();
+
+        String prompt = "You are an AI tutor. The user has these weaknesses: \n"
+                + weakness + "\nAnswer their question/help them accordingly.\nUser: " + message;
+
+        return callGeminiAPI(prompt);
+    }
+
+    // Extract the common API call logic
+    private String callGeminiAPI(String prompt) {
         Map<String, Object> request = Map.of(
                 "contents", List.of(Map.of(
                         "role", "user",

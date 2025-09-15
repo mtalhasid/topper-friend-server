@@ -172,7 +172,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5QGdtYWlsLmNvbSIsImlhdCI6M
 ### Generate summary
 POST http://localhost:8080/api/quiz-generator
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsQGdtYWlsLmNvbSIsImlhdCI6MTc1NzcxOTkwNywiZXhwIjoxNzU3ODA2MzA3fQ.ZDVR7AgjPYTgJVA1oyMNRxo4uuIa2eSNmZjpoy3fyzg",
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiV2FrYW5kYSBCaGFpIiwidXNlcklkIjozNywiZW1haWwiOiJ3YWthbmRhQGdtYWlsLmNvbSIsInN1YiI6Indha2FuZGFAZ21haWwuY29tIiwiaWF0IjoxNzU3OTU0NjEzLCJleHAiOjE3NTgwNDEwMTN9.zT5Pin2Dyo06yZBf9XcGNDMYG3fYCjNglMoFugCSmzw
 
 {
   "text": "Wikipedia is hosted by the Wikimedia Foundation, a non-profit organization that also hosts a range of other projects.",
@@ -182,7 +182,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsQGdtYWlsLmNvbSIsImlhdCI6M
 ### Generate quiz
 POST http://localhost:8080/api/quiz-generator
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsQGdtYWlsLmNvbSIsImlhdCI6MTc1NzcxOTkwNywiZXhwIjoxNzU3ODA2MzA3fQ.ZDVR7AgjPYTgJVA1oyMNRxo4uuIa2eSNmZjpoy3fyzg",
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiV2FrYW5kYSBCaGFpIiwidXNlcklkIjozNywiZW1haWwiOiJ3YWthbmRhQGdtYWlsLmNvbSIsInN1YiI6Indha2FuZGFAZ21haWwuY29tIiwiaWF0IjoxNzU3OTU0NjEzLCJleHAiOjE3NTgwNDEwMTN9.zT5Pin2Dyo06yZBf9XcGNDMYG3fYCjNglMoFugCSmzw
 
 {
   "text": "Java SpringBoot",
@@ -259,12 +259,12 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wb
 
 ### 2️⃣ Chat with AI tutor (context: user's quiz weaknesses)
 POST http://localhost:8080/api/ai-chat
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsQGdtYWlsLmNvbSIsImlhdCI6MTc1NzcxOTkwNywiZXhwIjoxNzU3ODA2MzA3fQ.ZDVR7AgjPYTgJVA1oyMNRxo4uuIa2eSNmZjpoy3fyzg",
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiV2FrYW5kYSBCaGFpIiwidXNlcklkIjozNywiZW1haWwiOiJ3YWthbmRhQGdtYWlsLmNvbSIsInN1YiI6Indha2FuZGFAZ21haWwuY29tIiwiaWF0IjoxNzU3OTU4MDE4LCJleHAiOjE3NTgwNDQ0MTh9.BIlcmRt2FvEkKVAqHf1R8A7oUB8XGpcsUb-GW7OdWSM
 Content-Type: application/json
 
 {
-  "userId": 35,
-  "message": "Can you explain what is a Prisma?"
+  "userId": 37,
+  "message": "Can you explain me my weaknesses that u have..??"
 }
 
 

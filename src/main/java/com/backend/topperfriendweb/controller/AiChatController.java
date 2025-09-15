@@ -23,8 +23,9 @@ public class AiChatController {
         this.jwtUtil = jwtUtil;
     }
 
-    @PostMapping
-    public ResponseEntity<?> chat(@RequestHeader("Authorization") String authHeader,
+    @PostMapping("/{studyPlanId}")  // Change this line
+    public ResponseEntity<?> chat(@PathVariable Long studyPlanId,  // Add this parameter
+                                  @RequestHeader("Authorization") String authHeader,
                                   @RequestBody Map<String, String> body) {
         try {
             String token = authHeader.replace("Bearer ", "");
@@ -37,7 +38,7 @@ public class AiChatController {
                 return ResponseEntity.badRequest().body(Map.of("error", "Message is required"));
             }
 
-            String aiResponse = aiChatService.chatWithUserWeakness(user, message);
+            String aiResponse = aiChatService.chatWithStudyPlanWeakness(user, message, studyPlanId);  // Pass studyPlanId
             return ResponseEntity.ok(Map.of("success", true, "response", aiResponse));
 
         } catch (Exception e) {
