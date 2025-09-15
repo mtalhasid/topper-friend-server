@@ -1,5 +1,5 @@
 // src/main/java/com/backend/topperfriendweb/dto/PaginationResponse.java
-package com.backend.topperfriendweb.dto;
+package com.backend.topperfriendweb.dto.note;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

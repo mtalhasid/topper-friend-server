@@ -1,4 +1,4 @@
-package com.backend.topperfriendweb.dto;
+package com.backend.topperfriendweb.dto.collection;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.AllArgsConstructor;

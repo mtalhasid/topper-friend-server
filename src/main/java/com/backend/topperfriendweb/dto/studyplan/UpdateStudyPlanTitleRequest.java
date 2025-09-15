@@ -1,4 +1,4 @@
-package com.backend.topperfriendweb.dto;
+package com.backend.topperfriendweb.dto.studyplan;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

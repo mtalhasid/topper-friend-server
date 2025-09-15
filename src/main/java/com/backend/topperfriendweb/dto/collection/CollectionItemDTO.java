@@ -1,6 +1,9 @@
-package com.backend.topperfriendweb.dto;
+package com.backend.topperfriendweb.dto.collection;
 
 import java.time.LocalDateTime;
+
+import com.backend.topperfriendweb.dto.note.NoteDTO;
+import com.backend.topperfriendweb.dto.studyplan.StudyPlanDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

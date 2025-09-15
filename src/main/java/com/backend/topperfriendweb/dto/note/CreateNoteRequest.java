@@ -1,4 +1,4 @@
-package com.backend.topperfriendweb.dto;
+package com.backend.topperfriendweb.dto.note;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

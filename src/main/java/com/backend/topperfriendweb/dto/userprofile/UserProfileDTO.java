@@ -1,5 +1,6 @@
-package com.backend.topperfriendweb.dto;
+package com.backend.topperfriendweb.dto.userprofile;
 
+import com.backend.topperfriendweb.dto.note.NoteDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

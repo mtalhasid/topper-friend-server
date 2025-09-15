@@ -12,6 +12,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 
@@ -76,30 +78,65 @@ public class AuthService {
         }
     }
 
+    // FIXED: Updated login method to return enhanced response
     @Transactional(readOnly = true)
-    public LoginResponse login(String email, String password) {
+    public Map<String, Object> loginEnhanced(String email, String password) {
         String emailLower = email.trim().toLowerCase();
         Optional<User> optionalUser = userRepository.findByEmailIgnoreCase(emailLower);
 
+        Map<String, Object> response = new HashMap<>();
+
         if (optionalUser.isEmpty()) {
-            return new LoginResponse(false, "User not found", null);
+            response.put("success", false);
+            response.put("message", "User not found");
+            return response;
         }
 
         User user = optionalUser.get();
 
         if (user.getEmailVerified() == null) {
-            return new LoginResponse(false, "Email not verified", null);
+            response.put("success", false);
+            response.put("message", "Email not verified");
+            return response;
         }
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            return new LoginResponse(false, "Incorrect password", null);
+            response.put("success", false);
+            response.put("message", "Incorrect password");
+            return response;
         }
 
-        String token = jwtUtil.generateToken(user.getEmail());
-        return new LoginResponse(true, "Login successful", token);
+        // Generate token with complete user info
+        String token = jwtUtil.generateTokenWithUserInfo(user.getId(), user.getEmail(), user.getName());
+
+        response.put("success", true);
+        response.put("message", "Login successful");
+        response.put("token", token);
+
+        // Add user info to response
+        Map<String, Object> userInfo = new HashMap<>();
+        userInfo.put("id", user.getId());
+        userInfo.put("email", user.getEmail());
+        userInfo.put("name", user.getName());
+        userInfo.put("username", user.getUsername());
+        userInfo.put("onboardingCompleted", user.getOnboardingCompleted());
+
+        response.put("user", userInfo);
+
+        return response;
     }
 
-    // src/main/java/com/backend/topperfriendweb/service/AuthService.java
+    // Keep original method for backward compatibility
+    @Transactional(readOnly = true)
+    public LoginResponse login(String email, String password) {
+        Map<String, Object> enhancedResponse = loginEnhanced(email, password);
+        return new LoginResponse(
+                (Boolean) enhancedResponse.get("success"),
+                (String) enhancedResponse.get("message"),
+                (String) enhancedResponse.get("token")
+        );
+    }
+
     @Transactional
     public User completeOnboarding(Long userId, OnboardingRequest request) {
         User user = userRepository.findById(userId)
@@ -133,6 +170,11 @@ public class AuthService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
     }
 
+    @Transactional(readOnly = true)
+    public User getUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    }
 
     private String generateOtp() {
         int code = 100000 + new Random().nextInt(900000);
@@ -168,8 +210,6 @@ public class AuthService {
 
         return savedUser.getId();
     }
-
-    // ... keep the rest of your methods (login, completeOnboarding, getUserByEmail) as they were
 
     @Transactional
     public void resendOtp(String email) throws Exception {

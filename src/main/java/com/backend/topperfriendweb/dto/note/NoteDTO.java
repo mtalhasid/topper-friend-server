@@ -1,5 +1,5 @@
 // src/main/java/com/backend/topperfriendweb/dto/NoteDTO.java
-package com.backend.topperfriendweb.dto;
+package com.backend.topperfriendweb.dto.note;
 
 import java.time.LocalDateTime;
 import java.util.List;

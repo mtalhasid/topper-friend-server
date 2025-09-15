@@ -1,4 +1,4 @@
-package com.backend.topperfriendweb.dto;
+package com.backend.topperfriendweb.dto.quiz;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

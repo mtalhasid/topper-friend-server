@@ -1,7 +1,7 @@
 package com.backend.topperfriendweb.service;
 
-import com.backend.topperfriendweb.dto.NoteDTO;
-import com.backend.topperfriendweb.dto.UserProfileDTO;
+import com.backend.topperfriendweb.dto.note.NoteDTO;
+import com.backend.topperfriendweb.dto.userprofile.UserProfileDTO;
 import com.backend.topperfriendweb.model.User;
 import com.backend.topperfriendweb.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

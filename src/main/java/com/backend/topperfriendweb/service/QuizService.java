@@ -1,8 +1,8 @@
 package com.backend.topperfriendweb.service;
 
-import com.backend.topperfriendweb.dto.QuizDTO;
-import com.backend.topperfriendweb.dto.QuizSubmissionResponse;
-import com.backend.topperfriendweb.dto.SubmitQuizRequest;
+import com.backend.topperfriendweb.dto.quiz.QuizDTO;
+import com.backend.topperfriendweb.dto.quiz.QuizSubmissionResponse;
+import com.backend.topperfriendweb.dto.quiz.SubmitQuizRequest;
 import com.backend.topperfriendweb.model.Quiz;
 import com.backend.topperfriendweb.model.User;
 import com.backend.topperfriendweb.repository.QuizRepository;

@@ -1,8 +1,8 @@
 package com.backend.topperfriendweb.service;
 
-import com.backend.topperfriendweb.dto.CreateNoteRequest;
-import com.backend.topperfriendweb.dto.NoteDTO;
-import com.backend.topperfriendweb.dto.PaginationResponse;
+import com.backend.topperfriendweb.dto.note.CreateNoteRequest;
+import com.backend.topperfriendweb.dto.note.NoteDTO;
+import com.backend.topperfriendweb.dto.note.PaginationResponse;
 import com.backend.topperfriendweb.model.Note;
 import com.backend.topperfriendweb.model.User;
 import com.backend.topperfriendweb.repository.NoteRepository;
@@ -10,7 +10,6 @@ import com.backend.topperfriendweb.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -94,7 +93,8 @@ public class NoteService {
         return response;
     }
 
-    // CONVERT RAW SQL RESULT TO DTO WITH USER'S LIKE/SAVE STATUS
+    // JUST REPLACE YOUR convertRawToDTO METHOD WITH THIS:
+
     private NoteDTO convertRawToDTO(Object[] raw, Long currentUserId) {
         NoteDTO dto = new NoteDTO();
         dto.set_id(raw[0].toString());
@@ -114,24 +114,35 @@ public class NoteService {
             dto.setTags(Arrays.asList(tagsStr.split(",")));
         }
 
-        // Set user's like/save status based on SQL results
-        Boolean userLiked = raw.length > 9 ? (Boolean) raw[9] : false;
-        Boolean userSaved = raw.length > 10 ? (Boolean) raw[10] : false;
-
-        // For frontend compatibility, populate arrays with just current user if they liked/saved
-        if (currentUserId != null) {
-            dto.setLikedByUsers(userLiked ? List.of(currentUserId) : List.of());
-            dto.setSavedByUsers(userSaved ? List.of(currentUserId) : List.of());
-        } else {
+        // Parse liked users from comma-separated string
+        String likedUsersStr = (String) raw[9];
+        if (likedUsersStr == null || likedUsersStr.trim().isEmpty()) {
             dto.setLikedByUsers(List.of());
+        } else {
+            dto.setLikedByUsers(
+                    Arrays.stream(likedUsersStr.split(","))
+                            .map(Long::parseLong)
+                            .collect(Collectors.toList())
+            );
+        }
+
+        // Parse saved users from comma-separated string
+        String savedUsersStr = (String) raw[10];
+        if (savedUsersStr == null || savedUsersStr.trim().isEmpty()) {
             dto.setSavedByUsers(List.of());
+        } else {
+            dto.setSavedByUsers(
+                    Arrays.stream(savedUsersStr.split(","))
+                            .map(Long::parseLong)
+                            .collect(Collectors.toList())
+            );
         }
 
         return dto;
     }
 
     public List<NoteDTO> getUserNotes(Long userId) {
-        List<Object[]> rawResults = noteRepository.findUserNotesRaw(userId);
+        List<Object[]> rawResults = noteRepository.findUserNotesWithArrays(userId);
         return rawResults.stream()
                 .map(raw -> convertRawToDTO(raw, userId))
                 .collect(Collectors.toList());
@@ -183,14 +194,14 @@ public class NoteService {
     }
 
     public List<NoteDTO> getLikedNotes(Long userId) {
-        List<Object[]> rawResults = noteRepository.findLikedNotesRaw(userId);
+        List<Object[]> rawResults = noteRepository.findLikedNotesWithArrays(userId);
         return rawResults.stream()
                 .map(raw -> convertRawToDTO(raw, userId))
                 .collect(Collectors.toList());
     }
 
     public List<NoteDTO> getSavedNotes(Long userId) {
-        List<Object[]> rawResults = noteRepository.findSavedNotesRaw(userId);
+        List<Object[]> rawResults = noteRepository.findSavedNotesWithArrays(userId);
         return rawResults.stream()
                 .map(raw -> convertRawToDTO(raw, userId))
                 .collect(Collectors.toList());

@@ -1,6 +1,6 @@
 package com.backend.topperfriendweb.controller;
 
-import com.backend.topperfriendweb.dto.*;
+import com.backend.topperfriendweb.dto.collection.*;
 import com.backend.topperfriendweb.model.User;
 import com.backend.topperfriendweb.repository.UserRepository;
 import com.backend.topperfriendweb.service.CollectionService;

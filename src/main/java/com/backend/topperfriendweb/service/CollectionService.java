@@ -1,6 +1,8 @@
 package com.backend.topperfriendweb.service;
 
-import com.backend.topperfriendweb.dto.*;
+import com.backend.topperfriendweb.dto.collection.*;
+import com.backend.topperfriendweb.dto.note.NoteDTO;
+import com.backend.topperfriendweb.dto.studyplan.StudyPlanDTO;
 import com.backend.topperfriendweb.model.Collection;
 import com.backend.topperfriendweb.model.CollectionItem;
 import com.backend.topperfriendweb.model.Note;

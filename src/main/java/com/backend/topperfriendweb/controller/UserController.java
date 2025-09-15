@@ -1,6 +1,6 @@
 package com.backend.topperfriendweb.controller;
 
-import com.backend.topperfriendweb.dto.UserProfileDTO;
+import com.backend.topperfriendweb.dto.userprofile.UserProfileDTO;
 import com.backend.topperfriendweb.model.User;
 import com.backend.topperfriendweb.service.UserService;
 import lombok.RequiredArgsConstructor;

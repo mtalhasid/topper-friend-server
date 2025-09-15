@@ -1,8 +1,8 @@
 package com.backend.topperfriendweb.service;
 
-import com.backend.topperfriendweb.dto.StudyPlanDTO;
-import com.backend.topperfriendweb.dto.UpdateStudyPlanStatusRequest;
-import com.backend.topperfriendweb.dto.UpdateStudyPlanTitleRequest;
+import com.backend.topperfriendweb.dto.studyplan.StudyPlanDTO;
+import com.backend.topperfriendweb.dto.studyplan.UpdateStudyPlanStatusRequest;
+import com.backend.topperfriendweb.dto.studyplan.UpdateStudyPlanTitleRequest;
 import com.backend.topperfriendweb.model.StudyPlan;
 import com.backend.topperfriendweb.model.StudyPlanStatus;
 import com.backend.topperfriendweb.model.User;

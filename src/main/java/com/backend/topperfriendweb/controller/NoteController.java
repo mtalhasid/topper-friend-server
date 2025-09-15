@@ -1,8 +1,8 @@
 package com.backend.topperfriendweb.controller;
 
-import com.backend.topperfriendweb.dto.CreateNoteRequest;
-import com.backend.topperfriendweb.dto.NoteDTO;
-import com.backend.topperfriendweb.dto.PaginationResponse;
+import com.backend.topperfriendweb.dto.note.CreateNoteRequest;
+import com.backend.topperfriendweb.dto.note.NoteDTO;
+import com.backend.topperfriendweb.dto.note.PaginationResponse;
 import com.backend.topperfriendweb.model.User;
 import com.backend.topperfriendweb.repository.UserRepository;
 import com.backend.topperfriendweb.service.NoteService;

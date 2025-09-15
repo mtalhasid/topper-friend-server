@@ -13,20 +13,20 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
 
     // NEW - RAW SQL FOR BROWSE WITH USER'S LIKE/SAVE STATUS
     @Query(value = """
-        SELECT n.id, n.user_id, n.title, n.pdf_link, n.likes, n.created_at, n.updated_at, n.username,
-               COALESCE(string_agg(DISTINCT nt.tag, ','), '') as tags_concat,
-               CASE WHEN nlu.user_id IS NOT NULL THEN true ELSE false END as user_liked,
-               CASE WHEN nsu.user_id IS NOT NULL THEN true ELSE false END as user_saved
-        FROM notes n 
-        LEFT JOIN note_tags nt ON n.id = nt.note_id 
-        LEFT JOIN note_liked_users nlu ON n.id = nlu.note_id AND nlu.user_id = :currentUserId
-        LEFT JOIN note_saved_users nsu ON n.id = nsu.note_id AND nsu.user_id = :currentUserId
-        WHERE (:query IS NULL OR LOWER(n.title) LIKE LOWER(CONCAT('%', :query, '%')))
-        AND (:tag IS NULL OR EXISTS (SELECT 1 FROM note_tags nt2 WHERE nt2.note_id = n.id AND nt2.tag = :tag))
-        GROUP BY n.id, n.user_id, n.title, n.pdf_link, n.likes, n.created_at, n.updated_at, n.username, nlu.user_id, nsu.user_id
-        ORDER BY n.created_at DESC 
-        LIMIT :limit OFFSET :offset
-        """, nativeQuery = true)
+    SELECT n.id, n.user_id, n.title, n.pdf_link, n.likes, n.created_at, n.updated_at, n.username,
+           COALESCE(string_agg(DISTINCT nt.tag, ','), '') as tags_concat,
+           COALESCE(string_agg(DISTINCT nlu.user_id::text, ','), '') as liked_users_concat,
+           COALESCE(string_agg(DISTINCT nsu.user_id::text, ','), '') as saved_users_concat
+    FROM notes n 
+    LEFT JOIN note_tags nt ON n.id = nt.note_id 
+    LEFT JOIN note_liked_users nlu ON n.id = nlu.note_id
+    LEFT JOIN note_saved_users nsu ON n.id = nsu.note_id
+    WHERE (:query IS NULL OR LOWER(n.title) LIKE LOWER(CONCAT('%', :query, '%')))
+    AND (:tag IS NULL OR EXISTS (SELECT 1 FROM note_tags nt2 WHERE nt2.note_id = n.id AND nt2.tag = :tag))
+    GROUP BY n.id, n.user_id, n.title, n.pdf_link, n.likes, n.created_at, n.updated_at, n.username
+    ORDER BY n.created_at DESC 
+    LIMIT :limit OFFSET :offset
+    """, nativeQuery = true)
     List<Object[]> findNotesWithUserStatus(@Param("query") String query,
                                            @Param("tag") String tag,
                                            @Param("currentUserId") Long currentUserId,
@@ -62,6 +62,21 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
         """, nativeQuery = true)
     List<Object[]> findUserNotesRaw(@Param("userId") Long userId);
 
+    @Query(value = """
+    SELECT n.id, n.user_id, n.title, n.pdf_link, n.likes, n.created_at, n.updated_at, n.username,
+           COALESCE(string_agg(DISTINCT nt.tag, ','), '') as tags_concat,
+           COALESCE(string_agg(DISTINCT nlu.user_id::text, ','), '') as liked_users_concat,
+           COALESCE(string_agg(DISTINCT nsu.user_id::text, ','), '') as saved_users_concat
+    FROM notes n 
+    LEFT JOIN note_tags nt ON n.id = nt.note_id 
+    LEFT JOIN note_liked_users nlu ON n.id = nlu.note_id
+    LEFT JOIN note_saved_users nsu ON n.id = nsu.note_id
+    WHERE n.user_id = :userId
+    GROUP BY n.id, n.user_id, n.title, n.pdf_link, n.likes, n.created_at, n.updated_at, n.username
+    ORDER BY n.created_at DESC
+    """, nativeQuery = true)
+    List<Object[]> findUserNotesWithArrays(@Param("userId") Long userId);
+
     // RAW SQL FOR LIKED NOTES
     @Query(value = """
         SELECT n.id, n.user_id, n.title, n.pdf_link, n.likes, n.created_at, n.updated_at, n.username,
@@ -87,6 +102,40 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
         ORDER BY n.created_at DESC
         """, nativeQuery = true)
     List<Object[]> findSavedNotesRaw(@Param("userId") Long userId);
+
+    // For liked notes
+    @Query(value = """
+    SELECT n.id, n.user_id, n.title, n.pdf_link, n.likes, n.created_at, n.updated_at, n.username,
+           COALESCE(string_agg(DISTINCT nt.tag, ','), '') as tags_concat,
+           COALESCE(string_agg(DISTINCT nlu.user_id::text, ','), '') as liked_users_concat,
+           COALESCE(string_agg(DISTINCT nsu.user_id::text, ','), '') as saved_users_concat
+    FROM notes n 
+    LEFT JOIN note_tags nt ON n.id = nt.note_id 
+    LEFT JOIN note_liked_users nlu ON n.id = nlu.note_id
+    LEFT JOIN note_saved_users nsu ON n.id = nsu.note_id
+    JOIN note_liked_users nlu2 ON n.id = nlu2.note_id
+    WHERE nlu2.user_id = :userId
+    GROUP BY n.id, n.user_id, n.title, n.pdf_link, n.likes, n.created_at, n.updated_at, n.username
+    ORDER BY n.created_at DESC
+    """, nativeQuery = true)
+    List<Object[]> findLikedNotesWithArrays(@Param("userId") Long userId);
+
+    // For saved notes
+    @Query(value = """
+    SELECT n.id, n.user_id, n.title, n.pdf_link, n.likes, n.created_at, n.updated_at, n.username,
+           COALESCE(string_agg(DISTINCT nt.tag, ','), '') as tags_concat,
+           COALESCE(string_agg(DISTINCT nlu.user_id::text, ','), '') as liked_users_concat,
+           COALESCE(string_agg(DISTINCT nsu.user_id::text, ','), '') as saved_users_concat
+    FROM notes n 
+    LEFT JOIN note_tags nt ON n.id = nt.note_id 
+    LEFT JOIN note_liked_users nlu ON n.id = nlu.note_id
+    LEFT JOIN note_saved_users nsu ON n.id = nsu.note_id
+    JOIN note_saved_users nsu2 ON n.id = nsu2.note_id
+    WHERE nsu2.user_id = :userId
+    GROUP BY n.id, n.user_id, n.title, n.pdf_link, n.likes, n.created_at, n.updated_at, n.username
+    ORDER BY n.created_at DESC
+    """, nativeQuery = true)
+    List<Object[]> findSavedNotesWithArrays(@Param("userId") Long userId);
 
     // COUNT QUERY FOR PAGINATION
     @Query(value = """

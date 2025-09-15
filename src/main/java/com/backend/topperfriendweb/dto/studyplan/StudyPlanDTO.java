@@ -1,4 +1,4 @@
-package com.backend.topperfriendweb.dto;
+package com.backend.topperfriendweb.dto.studyplan;
 
 import com.backend.topperfriendweb.model.StudyPlan;
 import com.backend.topperfriendweb.model.StudyPlanStatus;

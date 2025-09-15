@@ -1,4 +1,4 @@
-package com.backend.topperfriendweb.dto;
+package com.backend.topperfriendweb.dto.studyplan;
 
 import com.backend.topperfriendweb.model.StudyPlanStatus;
 import jakarta.validation.constraints.NotNull;
