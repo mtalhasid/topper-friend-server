@@ -37,6 +37,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/login").permitAll()
                         .requestMatchers("/api/auth/verify-otp").permitAll()
                         .requestMatchers("/api/auth/resend-otp").permitAll()
+                        .requestMatchers("/api/auth/google-callback").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 

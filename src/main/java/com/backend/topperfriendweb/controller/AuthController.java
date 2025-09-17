@@ -14,8 +14,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -193,6 +196,23 @@ public class AuthController {
         } catch (Exception ex) {
             log.error("Get current user error", ex);
             return ResponseEntity.status(500).body(Map.of("error", "Failed to get user info"));
+        }
+    }
+
+    @PostMapping("/google-callback")
+    public ResponseEntity<?> googleCallback(@Valid @RequestBody GoogleCallbackRequest request) {
+        try {
+            log.info("Google callback with authorization code");
+
+            Map<String, Object> response = authService.handleGoogleCallback(request.getCode());
+            return ResponseEntity.ok(response);
+
+        } catch (Exception ex) {
+            log.error("Google callback error", ex);
+            return ResponseEntity.status(500).body(Map.of(
+                    "success", false,
+                    "message", "Google login failed: " + ex.getMessage()
+            ));
         }
     }
 }

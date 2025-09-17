@@ -93,8 +93,6 @@ public class NoteService {
         return response;
     }
 
-    // JUST REPLACE YOUR convertRawToDTO METHOD WITH THIS:
-
     private NoteDTO convertRawToDTO(Object[] raw, Long currentUserId) {
         NoteDTO dto = new NoteDTO();
         dto.set_id(raw[0].toString());
@@ -207,11 +205,6 @@ public class NoteService {
                 .collect(Collectors.toList());
     }
 
-    public List<Note> getUserNotesByUserId(Long userId) {
-        return noteRepository.findByUserIdOrderByCreatedAtDesc(userId);
-    }
-
-    // FULL DTO CONVERSION (ONLY FOR SINGLE NOTE DETAILS)
     private NoteDTO convertToDTO(Note note) {
         NoteDTO dto = new NoteDTO();
         dto.set_id(note.getId().toString());

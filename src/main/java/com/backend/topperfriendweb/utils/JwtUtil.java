@@ -1,6 +1,5 @@
 package com.backend.topperfriendweb.utils;
 
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,24 +18,13 @@ public class JwtUtil {
     private String secret;
 
     @Value("${app.jwt.expiration-ms:86400000}")
-    private long expirationMs; // default 24h
+    private long expirationMs;
 
     private SecretKeySpec getSigningKey() {
         return new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8),
                 SignatureAlgorithm.HS256.getJcaName());
     }
 
-    // Original method - keep for backward compatibility
-    public String generateToken(String email) {
-        return Jwts.builder()
-                .setSubject(email)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expirationMs))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
-                .compact();
-    }
-
-    // Enhanced method with user ID and additional info
     public String generateTokenWithUserInfo(Long userId, String email, String name) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
@@ -45,7 +33,7 @@ public class JwtUtil {
 
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(email) // Keep email as subject for compatibility
+                .setSubject(email)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
@@ -59,42 +47,5 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
-    }
-
-    public Long getUserIdFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-
-        // Handle both Integer and Long types
-        Object userId = claims.get("userId");
-        if (userId instanceof Integer) {
-            return ((Integer) userId).longValue();
-        }
-        return (Long) userId;
-    }
-
-    public String getNameFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-
-        return (String) claims.get("name");
-    }
-
-    public boolean isTokenValid(String token) {
-        try {
-            Jwts.parserBuilder()
-                    .setSigningKey(getSigningKey())
-                    .build()
-                    .parseClaimsJws(token);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
     }
 }

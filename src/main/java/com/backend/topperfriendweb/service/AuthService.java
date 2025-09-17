@@ -11,6 +11,9 @@ import com.backend.topperfriendweb.utils.JwtUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.beans.factory.annotation.Value;
+
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,6 +22,12 @@ import java.util.Random;
 
 @Service
 public class AuthService {
+    @Value("${google.oauth.client-id}")
+    private String googleClientId;
+
+    @Value("${google.oauth.client-secret}")
+    private String googleClientSecret;
+
     private final UserRepository userRepository;
     private final TempRegistrationRepository tempRegistrationRepository;
     private final PasswordEncoder passwordEncoder;
@@ -126,17 +135,6 @@ public class AuthService {
         return response;
     }
 
-    // Keep original method for backward compatibility
-    @Transactional(readOnly = true)
-    public LoginResponse login(String email, String password) {
-        Map<String, Object> enhancedResponse = loginEnhanced(email, password);
-        return new LoginResponse(
-                (Boolean) enhancedResponse.get("success"),
-                (String) enhancedResponse.get("message"),
-                (String) enhancedResponse.get("token")
-        );
-    }
-
     @Transactional
     public User completeOnboarding(Long userId, OnboardingRequest request) {
         User user = userRepository.findById(userId)
@@ -226,5 +224,103 @@ public class AuthService {
 
         // Send email
         mailjetService.sendVerificationEmail(email, tempReg.getName(), newOtp);
+    }
+
+
+    @Transactional
+    public Map<String, Object> handleGoogleCallback(String authorizationCode) {
+        try {
+            // Exchange authorization code for access token
+            Map<String, Object> tokenData = exchangeCodeForTokens(authorizationCode);
+            String accessToken = (String) tokenData.get("access_token");
+
+            // Get user info from Google
+            Map<String, Object> userInfo = getUserInfoFromGoogle(accessToken);
+
+            String email = (String) userInfo.get("email");
+            String name = (String) userInfo.get("name");
+            String picture = (String) userInfo.get("picture");
+
+            // Check if user exists
+            User existingUser = null;
+            try {
+                existingUser = getUserByEmail(email);
+            } catch (IllegalArgumentException e) {
+                // User doesn't exist
+            }
+
+            if (existingUser != null) {
+                // User exists - log them in
+                String token = jwtUtil.generateTokenWithUserInfo(existingUser.getId(), existingUser.getEmail(), existingUser.getName());
+
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", true);
+                response.put("message", "Login successful");
+                response.put("token", token);
+
+                Map<String, Object> userInfoResponse = new HashMap<>();
+                userInfoResponse.put("id", existingUser.getId());
+                userInfoResponse.put("email", existingUser.getEmail());
+                userInfoResponse.put("name", existingUser.getName());
+                userInfoResponse.put("username", existingUser.getUsername());
+                userInfoResponse.put("onboardingCompleted", existingUser.getOnboardingCompleted());
+                response.put("user", userInfoResponse);
+
+                return response;
+            } else {
+                // Create new user
+                User newUser = User.builder()
+                        .name(name)
+                        .email(email.toLowerCase())
+                        .password(passwordEncoder.encode("GOOGLE_AUTH_" + System.currentTimeMillis()))
+                        .username(email.split("@")[0])
+                        .emailVerified(LocalDateTime.now())
+                        .image(picture)
+                        .onboardingCompleted(false)
+                        .build();
+
+                User savedUser = userRepository.save(newUser);
+                String token = jwtUtil.generateTokenWithUserInfo(savedUser.getId(), savedUser.getEmail(), savedUser.getName());
+
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", true);
+                response.put("message", "Account created successfully");
+                response.put("token", token);
+                response.put("isNewUser", true);
+
+                Map<String, Object> userInfoResponse = new HashMap<>();
+                userInfoResponse.put("id", savedUser.getId());
+                userInfoResponse.put("email", savedUser.getEmail());
+                userInfoResponse.put("name", savedUser.getName());
+                userInfoResponse.put("username", savedUser.getUsername());
+                userInfoResponse.put("onboardingCompleted", false);
+                response.put("user", userInfoResponse);
+
+                return response;
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to process Google callback: " + e.getMessage());
+        }
+    }
+
+    private Map<String, Object> exchangeCodeForTokens(String code) {
+        String tokenUrl = "https://oauth2.googleapis.com/token";
+
+        Map<String, String> params = new HashMap<>();
+        params.put("code", code);
+        params.put("client_id", googleClientId);
+        params.put("client_secret", googleClientSecret);
+        params.put("redirect_uri", "http://localhost:3000/auth/google/callback");
+        params.put("grant_type", "authorization_code");
+
+        RestTemplate restTemplate = new RestTemplate();
+        return restTemplate.postForObject(tokenUrl, params, Map.class);
+    }
+
+    private Map<String, Object> getUserInfoFromGoogle(String accessToken) {
+        String userInfoUrl = "https://www.googleapis.com/oauth2/v2/userinfo?access_token=" + accessToken;
+        RestTemplate restTemplate = new RestTemplate();
+        return restTemplate.getForObject(userInfoUrl, Map.class);
     }
 }

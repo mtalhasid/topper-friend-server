@@ -29,18 +29,6 @@ public class AiChatService {
                 .build();
     }
 
-    public String chatWithUserWeakness(User user, String message) {
-        String weakness = quizRepository
-                .findTopByUserIdOrderByCreatedAtDesc(user.getId())
-                .map(quiz -> quiz.getWeaknessSummary())
-                .orElse("No weakness recorded yet.");
-
-        String prompt = "You are an AI tutor. The user has these weaknesses: \n"
-                + weakness + "\nAnswer their question/help them accordingly.\nUser: " + message;
-
-        return callGeminiAPI(prompt);
-    }
-
     // NEW METHOD - Add this
     public String chatWithStudyPlanWeakness(User user, String message, Long studyPlanId) {
         StudyPlan studyPlan = studyPlanRepository.findById(studyPlanId)

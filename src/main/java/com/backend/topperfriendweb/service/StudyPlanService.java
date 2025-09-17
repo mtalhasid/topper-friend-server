@@ -57,13 +57,6 @@ public class StudyPlanService {
     }
 
     @Transactional(readOnly = true)
-    public StudyPlanDTO getLatestStudyPlan(User user) {
-        StudyPlan plan = studyPlanRepository.findTopByUserIdOrderByCreatedAtDesc(user.getId())
-                .orElse(null);
-        return plan != null ? new StudyPlanDTO(plan) : null;
-    }
-
-    @Transactional(readOnly = true)
     public List<StudyPlanDTO> getUserStudyPlans(Long userId) {
         return studyPlanRepository.findByUserId(userId)
                 .stream()
