@@ -36,7 +36,7 @@ public class QuizService {
     @Transactional(readOnly = true)
     public QuizDTO getQuizById(Long quizId) {
         Quiz quiz = quizRepository.findById(quizId)
-                .orElseThrow(() -> new RuntimeException("Quiz not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Quiz not found"));
         return new QuizDTO(quiz);
     }
 
@@ -46,7 +46,11 @@ public class QuizService {
             // Parse JSON to get total questions count
             JsonNode quizArray = objectMapper.readTree(questionsJson);
             if (!quizArray.isArray()) {
-                throw new RuntimeException("Invalid quiz format: expected JSON array");
+                throw new IllegalArgumentException("Invalid quiz format: expected JSON array");
+            }
+
+            if (quizArray.size() == 0) {
+                throw new IllegalArgumentException("Quiz must contain at least one question");
             }
 
             Quiz quiz = new Quiz();
@@ -57,9 +61,11 @@ public class QuizService {
 
             Quiz savedQuiz = quizRepository.save(quiz);
             return new QuizDTO(savedQuiz);
+        } catch (IllegalArgumentException e) {
+            throw e; // Re-throw IllegalArgumentException as-is
         } catch (Exception e) {
             log.error("Error creating quiz", e);
-            throw new RuntimeException("Failed to create quiz: " + e.getMessage());
+            throw new IllegalArgumentException("Failed to create quiz: " + e.getMessage());
         }
     }
 
@@ -67,24 +73,35 @@ public class QuizService {
     public QuizSubmissionResponse submitQuiz(SubmitQuizRequest request, User user) {
         try {
             Quiz quiz = quizRepository.findById(request.getQuizId())
-                    .orElseThrow(() -> new RuntimeException("Quiz not found"));
+                    .orElseThrow(() -> new IllegalArgumentException("Quiz not found"));
 
             // Parse questions JSON
             JsonNode questionsArray = objectMapper.readTree(quiz.getQuestionsJson());
             if (!questionsArray.isArray()) {
-                throw new RuntimeException("Invalid quiz format");
+                throw new IllegalArgumentException("Invalid quiz format");
+            }
+
+            int totalQuestions = questionsArray.size();
+
+            // Validate answers array length
+            if (request.getAnswers() == null || request.getAnswers().size() != totalQuestions) {
+                throw new IllegalArgumentException("Number of answers must match number of questions");
             }
 
             // Calculate score
             int score = 0;
-            int totalQuestions = questionsArray.size();
             ArrayNode wrongQuestions = objectMapper.createArrayNode();
 
             for (int i = 0; i < totalQuestions; i++) {
                 JsonNode questionNode = questionsArray.get(i);
+                if (!questionNode.has("correctAnswer")) {
+                    throw new IllegalArgumentException("Invalid question format: missing correctAnswer field");
+                }
+
                 int correctAnswer = questionNode.get("correctAnswer").asInt();
-                
-                if (i < request.getAnswers().size() && request.getAnswers().get(i) == correctAnswer) {
+                Integer userAnswer = request.getAnswers().get(i);
+
+                if (userAnswer != null && userAnswer.equals(correctAnswer)) {
                     score++;
                 } else {
                     wrongQuestions.add(questionNode);
@@ -102,6 +119,8 @@ public class QuizService {
                     log.warn("Failed to generate weakness summary", e);
                     weaknessSummary = "Unable to generate weakness analysis at this time.";
                 }
+            } else {
+                weaknessSummary = "Excellent work! You answered all questions correctly.";
             }
 
             return new QuizSubmissionResponse(
@@ -109,22 +128,24 @@ public class QuizService {
                     score,
                     totalQuestions,
                     weaknessSummary,
-                    "Quiz submitted successfully"
+                    String.format("Quiz submitted successfully. You scored %d out of %d.", score, totalQuestions)
             );
 
+        } catch (IllegalArgumentException e) {
+            throw e; // Re-throw IllegalArgumentException as-is
         } catch (Exception e) {
             log.error("Error submitting quiz", e);
-            throw new RuntimeException("Failed to submit quiz: " + e.getMessage());
+            throw new IllegalArgumentException("Failed to submit quiz: " + e.getMessage());
         }
     }
 
     @Transactional
     public void deleteQuiz(Long quizId, Long userId) {
         Quiz quiz = quizRepository.findById(quizId)
-                .orElseThrow(() -> new RuntimeException("Quiz not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Quiz not found"));
 
         if (!quiz.getUser().getId().equals(userId)) {
-            throw new RuntimeException("You don't have permission to delete this quiz");
+            throw new IllegalArgumentException("You don't have permission to delete this quiz");
         }
 
         quizRepository.delete(quiz);

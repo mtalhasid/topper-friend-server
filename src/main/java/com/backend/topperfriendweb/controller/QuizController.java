@@ -1,9 +1,7 @@
 package com.backend.topperfriendweb.controller;
 
-import com.backend.topperfriendweb.dto.quiz.GenerateQuizRequest;
-import com.backend.topperfriendweb.dto.quiz.QuizDTO;
-import com.backend.topperfriendweb.dto.quiz.QuizSubmissionResponse;
-import com.backend.topperfriendweb.dto.quiz.SubmitQuizRequest;
+import com.backend.topperfriendweb.dto.CommonResponse;
+import com.backend.topperfriendweb.dto.quiz.*;
 import com.backend.topperfriendweb.model.User;
 import com.backend.topperfriendweb.repository.UserRepository;
 import com.backend.topperfriendweb.service.GeminiService;
@@ -17,7 +15,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/quiz-generator")
@@ -33,83 +30,63 @@ public class QuizController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = (String) auth.getPrincipal();
         return userRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
     }
 
     @PostMapping
-    public ResponseEntity<?> generateQuiz(@Valid @RequestBody GenerateQuizRequest request) {
-        try {
-            User user = getLoggedInUser();
+    public ResponseEntity<CommonResponse<QuizGenerationResponse>> generateQuiz(
+            @Valid @RequestBody GenerateQuizRequest request) {
+        User user = getLoggedInUser();
 
-            if ("summarize".equals(request.getAction())) {
-                String summary = geminiService.summarize(request.getText());
-                return ResponseEntity.ok(Map.of(
-                        "success", true,
-                        "result", summary,
-                        "type", "summary"
-                ));
-            } else if ("generate-quiz".equals(request.getAction())) {
-                String jsonResponse = geminiService.generateQuizJson(request.getText());
-                QuizDTO quiz = quizService.createQuiz("Generated Quiz from Topic", jsonResponse, user);
-                
-                return ResponseEntity.ok(Map.of(
-                        "success", true,
-                        "quizzes", List.of(quiz),
-                        "type", "quiz"
-                ));
-            }
+        if ("summarize".equals(request.getAction())) {
+            String summary = geminiService.summarize(request.getText());
+            QuizGenerationResponse response = new QuizGenerationResponse(
+                    summary,
+                    null,
+                    "summary"
+            );
+            return ResponseEntity.ok(CommonResponse.success("Text summarized successfully", response));
 
-            return ResponseEntity.badRequest().body(Map.of("error", "Invalid action"));
-        } catch (Exception e) {
-            log.error("Error generating quiz", e);
-            return ResponseEntity.status(500).body(Map.of("error", "Server error: " + e.getMessage()));
+        } else if ("generate-quiz".equals(request.getAction())) {
+            String jsonResponse = geminiService.generateQuizJson(request.getText());
+            QuizDTO quiz = quizService.createQuiz("Generated Quiz from Topic", jsonResponse, user);
+
+            QuizGenerationResponse response = new QuizGenerationResponse(
+                    null,
+                    List.of(quiz),
+                    "quiz"
+            );
+            return ResponseEntity.ok(CommonResponse.success("Quiz generated successfully", response));
         }
+
+        throw new IllegalArgumentException("Invalid action. Must be 'summarize' or 'generate-quiz'");
     }
 
     @GetMapping
-    public ResponseEntity<?> getUserQuizzes() {
-        try {
-            User user = getLoggedInUser();
-            List<QuizDTO> quizzes = quizService.getUserQuizzes(user.getId());
-            return ResponseEntity.ok(Map.of("success", true, "quizzes", quizzes));
-        } catch (Exception e) {
-            log.error("Error getting user quizzes", e);
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
-        }
+    public ResponseEntity<CommonResponse<List<QuizDTO>>> getUserQuizzes() {
+        User user = getLoggedInUser();
+        List<QuizDTO> quizzes = quizService.getUserQuizzes(user.getId());
+        return ResponseEntity.ok(CommonResponse.success("User quizzes retrieved successfully", quizzes));
     }
 
     @GetMapping("/{quizId}")
-    public ResponseEntity<?> getQuizById(@PathVariable Long quizId) {
-        try {
-            QuizDTO quiz = quizService.getQuizById(quizId);
-            return ResponseEntity.ok(Map.of("success", true, "quiz", quiz));
-        } catch (Exception e) {
-            log.error("Error getting quiz by ID", e);
-            return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
-        }
+    public ResponseEntity<CommonResponse<QuizDTO>> getQuizById(@PathVariable Long quizId) {
+        QuizDTO quiz = quizService.getQuizById(quizId);
+        return ResponseEntity.ok(CommonResponse.success("Quiz retrieved successfully", quiz));
     }
 
     @PostMapping("/submit")
-    public ResponseEntity<?> submitQuiz(@Valid @RequestBody SubmitQuizRequest request) {
-        try {
-            User user = getLoggedInUser();
-            QuizSubmissionResponse response = quizService.submitQuiz(request, user);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            log.error("Error submitting quiz", e);
-            return ResponseEntity.status(500).body(Map.of("error", "Server error: " + e.getMessage()));
-        }
+    public ResponseEntity<CommonResponse<QuizSubmissionResponse>> submitQuiz(
+            @Valid @RequestBody SubmitQuizRequest request) {
+        User user = getLoggedInUser();
+        QuizSubmissionResponse response = quizService.submitQuiz(request, user);
+        return ResponseEntity.ok(CommonResponse.success("Quiz submitted successfully", response));
     }
 
     @DeleteMapping("/{quizId}")
-    public ResponseEntity<?> deleteQuiz(@PathVariable Long quizId) {
-        try {
-            User user = getLoggedInUser();
-            quizService.deleteQuiz(quizId, user.getId());
-            return ResponseEntity.ok(Map.of("success", true, "message", "Quiz deleted successfully"));
-        } catch (Exception e) {
-            log.error("Error deleting quiz", e);
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
-        }
+    public ResponseEntity<CommonResponse<String>> deleteQuiz(@PathVariable Long quizId) {
+        User user = getLoggedInUser();
+        quizService.deleteQuiz(quizId, user.getId());
+        return ResponseEntity.ok(CommonResponse.success("Quiz deleted successfully"));
     }
 }

@@ -41,7 +41,7 @@ public class CollectionService {
             return convertToDTO(savedCollection);
         } catch (Exception e) {
             log.error("Error creating collection", e);
-            throw new RuntimeException("Failed to create collection: " + e.getMessage());
+            throw new IllegalArgumentException("Failed to create collection: " + e.getMessage());
         }
     }
 
@@ -56,7 +56,7 @@ public class CollectionService {
     @Transactional(readOnly = true)
     public CollectionDTO getCollectionById(Long collectionId, User user) {
         Collection collection = collectionRepository.findByIdAndUser(collectionId, user)
-                .orElseThrow(() -> new RuntimeException("Collection not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Collection not found"));
 
         List<CollectionItem> items = collectionItemRepository.findByCollectionId(collectionId);
         List<CollectionItemDTO> enrichedItems = items.stream()
@@ -72,9 +72,9 @@ public class CollectionService {
     public CollectionDTO updateCollection(Long collectionId, UpdateCollectionRequest request, User user) {
         try {
             Collection collection = collectionRepository.findByIdAndUser(collectionId, user)
-                    .orElseThrow(() -> new RuntimeException("Collection not found"));
+                    .orElseThrow(() -> new IllegalArgumentException("Collection not found"));
 
-            if (request.getTitle() != null) {
+            if (request.getTitle() != null && !request.getTitle().trim().isEmpty()) {
                 collection.setTitle(request.getTitle());
             }
             if (request.getDescription() != null) {
@@ -83,16 +83,18 @@ public class CollectionService {
 
             Collection updatedCollection = collectionRepository.save(collection);
             return convertToDTO(updatedCollection);
+        } catch (IllegalArgumentException e) {
+            throw e; // Re-throw IllegalArgumentException as-is
         } catch (Exception e) {
             log.error("Error updating collection", e);
-            throw new RuntimeException("Failed to update collection: " + e.getMessage());
+            throw new IllegalArgumentException("Failed to update collection: " + e.getMessage());
         }
     }
 
     @Transactional
     public void deleteCollection(Long collectionId, User user) {
         Collection collection = collectionRepository.findByIdAndUser(collectionId, user)
-                .orElseThrow(() -> new RuntimeException("Collection not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Collection not found"));
 
         collectionRepository.delete(collection);
     }
@@ -101,33 +103,56 @@ public class CollectionService {
     public CollectionItemDTO addItemToCollection(Long collectionId, AddItemToCollectionRequest request, User user) {
         try {
             Collection collection = collectionRepository.findByIdAndUser(collectionId, user)
-                    .orElseThrow(() -> new RuntimeException("Collection not found"));
+                    .orElseThrow(() -> new IllegalArgumentException("Collection not found"));
 
             // Check if item already exists in collection
             if (collectionItemRepository.existsByCollectionIdAndItemTypeAndItemId(
                     collectionId, request.getItemType(), request.getItemId())) {
-                throw new RuntimeException("Item already in collection");
+                throw new IllegalArgumentException("Item already exists in collection");
+            }
+
+            // Validate that the item actually exists
+            if ("NOTE".equalsIgnoreCase(request.getItemType())) {
+                if (!noteRepository.existsById(request.getItemId())) {
+                    throw new IllegalArgumentException("Note not found");
+                }
+            } else if ("STUDY_PLAN".equalsIgnoreCase(request.getItemType())) {
+                if (!studyPlanRepository.existsById(request.getItemId())) {
+                    throw new IllegalArgumentException("Study plan not found");
+                }
+            } else {
+                throw new IllegalArgumentException("Invalid item type. Must be NOTE or STUDY_PLAN");
             }
 
             CollectionItem item = new CollectionItem();
             item.setCollection(collection);
-            item.setItemType(request.getItemType());
+            item.setItemType(request.getItemType().toUpperCase());
             item.setItemId(request.getItemId());
 
             CollectionItem savedItem = collectionItemRepository.save(item);
             return convertItemToDTO(savedItem);
+        } catch (IllegalArgumentException e) {
+            throw e; // Re-throw IllegalArgumentException as-is
         } catch (Exception e) {
             log.error("Error adding item to collection", e);
-            throw new RuntimeException("Failed to add item to collection: " + e.getMessage());
+            throw new IllegalArgumentException("Failed to add item to collection: " + e.getMessage());
         }
     }
 
     @Transactional
     public void removeItemFromCollection(Long collectionId, String itemType, Long itemId, User user) {
         collectionRepository.findByIdAndUser(collectionId, user)
-                .orElseThrow(() -> new RuntimeException("Collection not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Collection not found"));
 
-        collectionItemRepository.deleteByCollectionIdAndItemTypeAndItemId(collectionId, itemType, itemId);
+        boolean existed = collectionItemRepository.existsByCollectionIdAndItemTypeAndItemId(
+                collectionId, itemType.toUpperCase(), itemId);
+
+        if (!existed) {
+            throw new IllegalArgumentException("Item not found in collection");
+        }
+
+        collectionItemRepository.deleteByCollectionIdAndItemTypeAndItemId(
+                collectionId, itemType.toUpperCase(), itemId);
     }
 
     private CollectionDTO convertToDTO(Collection collection) {

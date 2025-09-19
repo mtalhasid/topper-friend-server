@@ -24,8 +24,12 @@ public class NoteService {
     private UserRepository userRepository;
 
     public NoteDTO createNote(CreateNoteRequest request) {
+        if (request.getUserId() == null) {
+            throw new IllegalArgumentException("User ID is required");
+        }
+
         User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         Note note = new Note();
         note.setUserId(request.getUserId());
@@ -39,15 +43,23 @@ public class NoteService {
     }
 
     private String processPdfLink(String pdfLink, String pdfOption) {
+        if (pdfLink == null || pdfLink.trim().isEmpty()) {
+            throw new IllegalArgumentException("PDF link is required");
+        }
+
+        if (pdfOption == null || pdfOption.trim().isEmpty()) {
+            throw new IllegalArgumentException("PDF option is required");
+        }
+
         if ("upload".equals(pdfOption)) {
             if (!pdfLink.contains("cloudinary.com")) {
-                throw new RuntimeException("Invalid Cloudinary URL");
+                throw new IllegalArgumentException("Invalid Cloudinary URL");
             }
             return pdfLink;
         } else if ("link".equals(pdfOption)) {
             return processGoogleDriveLink(pdfLink);
         }
-        throw new RuntimeException("Invalid pdfOption");
+        throw new IllegalArgumentException("Invalid pdfOption. Must be 'upload' or 'link'");
     }
 
     private String processGoogleDriveLink(String url) {
@@ -63,6 +75,14 @@ public class NoteService {
 
     // FAST VERSION - USES RAW SQL WITH CURRENT USER'S LIKE/SAVE STATUS
     public PaginationResponse<NoteDTO> browseNotes(String query, String tag, Integer page, Integer limit, Long currentUserId) {
+        // Validate pagination parameters
+        if (page == null || page < 1) {
+            throw new IllegalArgumentException("Page must be greater than 0");
+        }
+        if (limit == null || limit < 1 || limit > 100) {
+            throw new IllegalArgumentException("Limit must be between 1 and 100");
+        }
+
         int offset = (page - 1) * limit;
 
         // SINGLE RAW SQL QUERY WITH USER'S LIKE/SAVE STATUS
@@ -140,6 +160,10 @@ public class NoteService {
     }
 
     public List<NoteDTO> getUserNotes(Long userId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("User ID is required");
+        }
+
         List<Object[]> rawResults = noteRepository.findUserNotesWithArrays(userId);
         return rawResults.stream()
                 .map(raw -> convertRawToDTO(raw, userId))
@@ -147,8 +171,15 @@ public class NoteService {
     }
 
     public void toggleLike(Long noteId, Long userId) {
+        if (noteId == null) {
+            throw new IllegalArgumentException("Note ID is required");
+        }
+        if (userId == null) {
+            throw new IllegalArgumentException("User ID is required");
+        }
+
         Note note = noteRepository.findById(noteId)
-                .orElseThrow(() -> new RuntimeException("Note not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Note not found"));
 
         if (note.getLikedByUsers().contains(userId)) {
             note.getLikedByUsers().remove(userId);
@@ -162,8 +193,15 @@ public class NoteService {
     }
 
     public void toggleSave(Long noteId, Long userId) {
+        if (noteId == null) {
+            throw new IllegalArgumentException("Note ID is required");
+        }
+        if (userId == null) {
+            throw new IllegalArgumentException("User ID is required");
+        }
+
         Note note = noteRepository.findById(noteId)
-                .orElseThrow(() -> new RuntimeException("Note not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Note not found"));
 
         if (note.getSavedByUsers().contains(userId)) {
             note.getSavedByUsers().remove(userId);
@@ -175,23 +213,38 @@ public class NoteService {
     }
 
     public NoteDTO getNoteById(Long noteId) {
+        if (noteId == null) {
+            throw new IllegalArgumentException("Note ID is required");
+        }
+
         Note note = noteRepository.findById(noteId)
-                .orElseThrow(() -> new RuntimeException("Note not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Note not found"));
         return convertToDTO(note);
     }
 
     public void deleteNote(Long noteId, Long userId) {
+        if (noteId == null) {
+            throw new IllegalArgumentException("Note ID is required");
+        }
+        if (userId == null) {
+            throw new IllegalArgumentException("User ID is required");
+        }
+
         Note note = noteRepository.findById(noteId)
-                .orElseThrow(() -> new RuntimeException("Note not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Note not found"));
 
         if (!note.getUserId().equals(userId)) {
-            throw new RuntimeException("You don't have permission to delete this note");
+            throw new IllegalArgumentException("You don't have permission to delete this note");
         }
 
         noteRepository.delete(note);
     }
 
     public List<NoteDTO> getLikedNotes(Long userId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("User ID is required");
+        }
+
         List<Object[]> rawResults = noteRepository.findLikedNotesWithArrays(userId);
         return rawResults.stream()
                 .map(raw -> convertRawToDTO(raw, userId))
@@ -199,6 +252,10 @@ public class NoteService {
     }
 
     public List<NoteDTO> getSavedNotes(Long userId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("User ID is required");
+        }
+
         List<Object[]> rawResults = noteRepository.findSavedNotesWithArrays(userId);
         return rawResults.stream()
                 .map(raw -> convertRawToDTO(raw, userId))

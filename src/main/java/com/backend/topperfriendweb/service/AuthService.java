@@ -87,7 +87,30 @@ public class AuthService {
         }
     }
 
-    // FIXED: Updated login method to return enhanced response
+    // Clean login method that returns LoginResponse
+    public LoginResponse login(String email, String password) {
+        String emailLower = email.trim().toLowerCase();
+        Optional<User> optionalUser = userRepository.findByEmailIgnoreCase(emailLower);
+
+        if (optionalUser.isEmpty()) {
+            throw new IllegalArgumentException("User not found");
+        }
+
+        User user = optionalUser.get();
+
+        if (user.getEmailVerified() == null) {
+            throw new IllegalArgumentException("Email not verified");
+        }
+
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new IllegalArgumentException("Incorrect password");
+        }
+
+        String token = jwtUtil.generateTokenWithUserInfo(user.getId(), user.getEmail(), user.getName());
+        return new LoginResponse(true, "Login successful", token);
+    }
+
+    // Keep the old method for backward compatibility if needed elsewhere
     @Transactional(readOnly = true)
     public Map<String, Object> loginEnhanced(String email, String password) {
         String emailLower = email.trim().toLowerCase();
@@ -115,14 +138,12 @@ public class AuthService {
             return response;
         }
 
-        // Generate token with complete user info
         String token = jwtUtil.generateTokenWithUserInfo(user.getId(), user.getEmail(), user.getName());
 
         response.put("success", true);
         response.put("message", "Login successful");
         response.put("token", token);
 
-        // Add user info to response
         Map<String, Object> userInfo = new HashMap<>();
         userInfo.put("id", user.getId());
         userInfo.put("email", user.getEmail());
@@ -131,8 +152,55 @@ public class AuthService {
         userInfo.put("onboardingCompleted", user.getOnboardingCompleted());
 
         response.put("user", userInfo);
-
         return response;
+    }
+
+    // Clean Google callback method that returns LoginResponse
+    public LoginResponse handleGoogleCallback(String authorizationCode) {
+        try {
+            // Exchange authorization code for access token
+            Map<String, Object> tokenData = exchangeCodeForTokens(authorizationCode);
+            String accessToken = (String) tokenData.get("access_token");
+
+            // Get user info from Google
+            Map<String, Object> userInfo = getUserInfoFromGoogle(accessToken);
+
+            String email = (String) userInfo.get("email");
+            String name = (String) userInfo.get("name");
+            String picture = (String) userInfo.get("picture");
+
+            // Check if user exists
+            User existingUser = null;
+            try {
+                existingUser = getUserByEmail(email);
+            } catch (IllegalArgumentException e) {
+                // User doesn't exist
+            }
+
+            if (existingUser != null) {
+                // User exists - log them in
+                String token = jwtUtil.generateTokenWithUserInfo(existingUser.getId(), existingUser.getEmail(), existingUser.getName());
+                return new LoginResponse(true, "Login successful", token);
+            } else {
+                // Create new user
+                User newUser = User.builder()
+                        .name(name)
+                        .email(email.toLowerCase())
+                        .password(passwordEncoder.encode("GOOGLE_AUTH_" + System.currentTimeMillis()))
+                        .username(email.split("@")[0])
+                        .emailVerified(LocalDateTime.now())
+                        .image(picture)
+                        .onboardingCompleted(false)
+                        .build();
+
+                User savedUser = userRepository.save(newUser);
+                String token = jwtUtil.generateTokenWithUserInfo(savedUser.getId(), savedUser.getEmail(), savedUser.getName());
+                return new LoginResponse(true, "Account created successfully", token);
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to process Google callback: " + e.getMessage());
+        }
     }
 
     @Transactional
@@ -210,97 +278,23 @@ public class AuthService {
     }
 
     @Transactional
-    public void resendOtp(String email) throws Exception {
-        // Check if temporary registration exists
-        TempRegistration tempReg = tempRegistrationRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("No registration in progress"));
-
-        // Generate new OTP
-        String newOtp = generateOtp();
-        tempReg.setOtpCode(newOtp);
-        tempReg.setExpiresAt(LocalDateTime.now().plusMinutes(OTP_EXPIRY_MINUTES));
-
-        tempRegistrationRepository.save(tempReg);
-
-        // Send email
-        mailjetService.sendVerificationEmail(email, tempReg.getName(), newOtp);
-    }
-
-
-    @Transactional
-    public Map<String, Object> handleGoogleCallback(String authorizationCode) {
+    public void resendOtp(String email) {
         try {
-            // Exchange authorization code for access token
-            Map<String, Object> tokenData = exchangeCodeForTokens(authorizationCode);
-            String accessToken = (String) tokenData.get("access_token");
+            // Check if temporary registration exists
+            TempRegistration tempReg = tempRegistrationRepository.findByEmail(email)
+                    .orElseThrow(() -> new IllegalArgumentException("No registration in progress"));
 
-            // Get user info from Google
-            Map<String, Object> userInfo = getUserInfoFromGoogle(accessToken);
+            // Generate new OTP
+            String newOtp = generateOtp();
+            tempReg.setOtpCode(newOtp);
+            tempReg.setExpiresAt(LocalDateTime.now().plusMinutes(OTP_EXPIRY_MINUTES));
 
-            String email = (String) userInfo.get("email");
-            String name = (String) userInfo.get("name");
-            String picture = (String) userInfo.get("picture");
+            tempRegistrationRepository.save(tempReg);
 
-            // Check if user exists
-            User existingUser = null;
-            try {
-                existingUser = getUserByEmail(email);
-            } catch (IllegalArgumentException e) {
-                // User doesn't exist
-            }
-
-            if (existingUser != null) {
-                // User exists - log them in
-                String token = jwtUtil.generateTokenWithUserInfo(existingUser.getId(), existingUser.getEmail(), existingUser.getName());
-
-                Map<String, Object> response = new HashMap<>();
-                response.put("success", true);
-                response.put("message", "Login successful");
-                response.put("token", token);
-
-                Map<String, Object> userInfoResponse = new HashMap<>();
-                userInfoResponse.put("id", existingUser.getId());
-                userInfoResponse.put("email", existingUser.getEmail());
-                userInfoResponse.put("name", existingUser.getName());
-                userInfoResponse.put("username", existingUser.getUsername());
-                userInfoResponse.put("onboardingCompleted", existingUser.getOnboardingCompleted());
-                response.put("user", userInfoResponse);
-
-                return response;
-            } else {
-                // Create new user
-                User newUser = User.builder()
-                        .name(name)
-                        .email(email.toLowerCase())
-                        .password(passwordEncoder.encode("GOOGLE_AUTH_" + System.currentTimeMillis()))
-                        .username(email.split("@")[0])
-                        .emailVerified(LocalDateTime.now())
-                        .image(picture)
-                        .onboardingCompleted(false)
-                        .build();
-
-                User savedUser = userRepository.save(newUser);
-                String token = jwtUtil.generateTokenWithUserInfo(savedUser.getId(), savedUser.getEmail(), savedUser.getName());
-
-                Map<String, Object> response = new HashMap<>();
-                response.put("success", true);
-                response.put("message", "Account created successfully");
-                response.put("token", token);
-                response.put("isNewUser", true);
-
-                Map<String, Object> userInfoResponse = new HashMap<>();
-                userInfoResponse.put("id", savedUser.getId());
-                userInfoResponse.put("email", savedUser.getEmail());
-                userInfoResponse.put("name", savedUser.getName());
-                userInfoResponse.put("username", savedUser.getUsername());
-                userInfoResponse.put("onboardingCompleted", false);
-                response.put("user", userInfoResponse);
-
-                return response;
-            }
-
+            // Send email
+            mailjetService.sendVerificationEmail(email, tempReg.getName(), newOtp);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to process Google callback: " + e.getMessage());
+            throw new RuntimeException("Failed to resend OTP: " + e.getMessage(), e);
         }
     }
 

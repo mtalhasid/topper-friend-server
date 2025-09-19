@@ -34,12 +34,19 @@ public class GeminiService {
     }
 
     public String summarize(String text) {
+        if (text == null || text.trim().isEmpty()) {
+            throw new IllegalArgumentException("Text cannot be empty for summarization");
+        }
+
         String prompt = "Please summarize the following text in a clear and concise manner:\n" + text;
         return callGemini(prompt);
     }
 
-    // Add this method to GeminiService.java
     public String generateQuizJson(String text) {
+        if (text == null || text.trim().isEmpty()) {
+            throw new IllegalArgumentException("Text cannot be empty for quiz generation");
+        }
+
         String prompt = "Generate a multiple-choice quiz in strict JSON format like this, Generate a quiz in strict JSON format ONLY. Do NOT include ```json or markdown formatting. Just raw JSON array.\n:\n" +
                 "[\n" +
                 "  {\n" +
@@ -55,12 +62,15 @@ public class GeminiService {
                 "]\n\n" +
                 "Please generate 2-3 similar questions based on the following text:\n" + text;
 
-        // Call Gemini AI
         return callGemini(prompt);
     }
 
     private String callGemini(String prompt) {
         try {
+            if (apiKey == null || apiKey.trim().isEmpty()) {
+                throw new IllegalArgumentException("Gemini API key is not configured");
+            }
+
             Map<String, Object> request = Map.of(
                     "contents", List.of(Map.of(
                             "parts", List.of(Map.of("text", prompt)))));
@@ -71,11 +81,11 @@ public class GeminiService {
                     .retrieve()
                     .onStatus(
                             status -> status.is5xxServerError(),
-                            clientResponse -> Mono.error(new RuntimeException("Google API service unavailable (503). Please try again later."))
+                            clientResponse -> Mono.error(new IllegalArgumentException("Google API service unavailable (503). Please try again later."))
                     )
                     .onStatus(
                             status -> status.is4xxClientError(),
-                            clientResponse -> Mono.error(new RuntimeException("Invalid API request (4xx). Check your API key and quota."))
+                            clientResponse -> Mono.error(new IllegalArgumentException("Invalid API request (4xx). Check your API key and quota."))
                     )
                     .bodyToMono(Map.class)
                     .retryWhen(Retry.backoff(3, Duration.ofSeconds(2))
@@ -101,30 +111,49 @@ public class GeminiService {
             }
 
             // Handle empty response
-            throw new RuntimeException("Received empty response from Gemini API");
+            throw new IllegalArgumentException("Received empty response from Gemini API");
 
         } catch (WebClientResponseException.ServiceUnavailable e) {
-            throw new RuntimeException("Google's Gemini API is temporarily unavailable (503). Please try again in a few minutes.");
+            throw new IllegalArgumentException("Google's Gemini API is temporarily unavailable (503). Please try again in a few minutes.");
         } catch (WebClientResponseException.TooManyRequests e) {
-            throw new RuntimeException("API rate limit exceeded. Please try again later.");
+            throw new IllegalArgumentException("API rate limit exceeded. Please try again later.");
         } catch (WebClientResponseException e) {
-            throw new RuntimeException("API error (" + e.getStatusCode() + "): " + e.getResponseBodyAsString());
+            throw new IllegalArgumentException("API error (" + e.getStatusCode() + "): " + e.getResponseBodyAsString());
+        } catch (IllegalArgumentException e) {
+            throw e; // Re-throw IllegalArgumentException as-is
         } catch (Exception e) {
             if (e.getMessage().contains("timeout")) {
-                throw new RuntimeException("Request timed out. Google API may be slow - try again.");
+                throw new IllegalArgumentException("Request timed out. Google API may be slow - try again.");
             }
-            throw new RuntimeException("Failed to call Gemini API: " + e.getMessage(), e);
+            throw new IllegalArgumentException("Failed to call Gemini API: " + e.getMessage(), e);
         }
     }
 
     public String analyzeWeakness(String wrongQuestionsJson) {
+        if (wrongQuestionsJson == null || wrongQuestionsJson.trim().isEmpty()) {
+            throw new IllegalArgumentException("Wrong questions data cannot be empty for analysis");
+        }
+
         String prompt = "Analyze the following quiz content and provide a brief weakness analysis and study recommendations:\n"
                 + wrongQuestionsJson;
         return callGemini(prompt);
     }
 
     public String generateStudyPlanTasks(String weaknessAnalysis) {
-        String prompt = "Generate a 4-week study plan with specific tasks based on this weakness analysis:\n" + weaknessAnalysis;
+        if (weaknessAnalysis == null || weaknessAnalysis.trim().isEmpty()) {
+            throw new IllegalArgumentException("Weakness analysis cannot be empty for study plan generation");
+        }
+
+        String prompt = "Based on the following weakness analysis from a quiz, create a detailed 4-week study plan with specific daily tasks, resources, and milestones. " +
+                "Format it clearly with week-by-week breakdown:\n\n" +
+                "Weakness Analysis:\n" + weaknessAnalysis + "\n\n" +
+                "Please provide:\n" +
+                "- Week 1-4 breakdown with daily tasks\n" +
+                "- Recommended study resources\n" +
+                "- Practice exercises\n" +
+                "- Progress checkpoints\n" +
+                "Focus specifically on addressing the identified weaknesses.";
+
         return callGemini(prompt);
     }
 }

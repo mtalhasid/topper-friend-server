@@ -1,5 +1,6 @@
 package com.backend.topperfriendweb.controller;
 
+import com.backend.topperfriendweb.dto.CommonResponse;
 import com.backend.topperfriendweb.dto.userprofile.UserProfileDTO;
 import com.backend.topperfriendweb.model.User;
 import com.backend.topperfriendweb.service.UserService;
@@ -9,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
@@ -19,55 +19,31 @@ public class UserController {
 
     private final UserService userService;
 
-
     // Get all users with completed onboarding
     @GetMapping
-    public ResponseEntity<?> getAllUsers() {
-        try {
-            List<User> users = userService.getAllUsersWithCompletedOnboarding();
-            return ResponseEntity.ok(users);
-        } catch (Exception e) {
-            log.error("Error getting all users", e);
-            return ResponseEntity.status(500).body(Map.of("error", "Failed to fetch users"));
-        }
+    public ResponseEntity<CommonResponse<List<User>>> getAllUsers() {
+        List<User> users = userService.getAllUsersWithCompletedOnboarding();
+        return ResponseEntity.ok(CommonResponse.success("Users retrieved successfully", users));
     }
 
     // Get user profile by username WITH their notes
     @GetMapping("/{username}")
-    public ResponseEntity<?> getUserProfile(@PathVariable String username) {
-        try {
-            UserProfileDTO userProfile = userService.getUserProfileByUsername(username);
-            return ResponseEntity.ok(userProfile);
-        } catch (RuntimeException e) {
-            log.error("Error getting user profile", e);
-            return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
-        } catch (Exception e) {
-            log.error("Error getting user profile", e);
-            return ResponseEntity.status(500).body(Map.of("error", "Failed to fetch user profile"));
-        }
+    public ResponseEntity<CommonResponse<UserProfileDTO>> getUserProfile(@PathVariable String username) {
+        UserProfileDTO userProfile = userService.getUserProfileByUsername(username);
+        return ResponseEntity.ok(CommonResponse.success("User profile retrieved successfully", userProfile));
     }
 
     // Search users by username or name
     @GetMapping("/search")
-    public ResponseEntity<?> searchUsers(@RequestParam String q) {
-        try {
-            List<User> users = userService.searchUsers(q);
-            return ResponseEntity.ok(users);
-        } catch (Exception e) {
-            log.error("Error searching users", e);
-            return ResponseEntity.status(500).body(Map.of("error", "Failed to search users"));
-        }
+    public ResponseEntity<CommonResponse<List<User>>> searchUsers(@RequestParam String q) {
+        List<User> users = userService.searchUsers(q);
+        return ResponseEntity.ok(CommonResponse.success("Search completed successfully", users));
     }
 
     // Get users by college
     @GetMapping("/college/{collegeName}")
-    public ResponseEntity<?> getUsersByCollege(@PathVariable String collegeName) {
-        try {
-            List<User> users = userService.getUsersByCollege(collegeName);
-            return ResponseEntity.ok(users);
-        } catch (Exception e) {
-            log.error("Error getting users by college", e);
-            return ResponseEntity.status(500).body(Map.of("error", "Failed to fetch users by college"));
-        }
+    public ResponseEntity<CommonResponse<List<User>>> getUsersByCollege(@PathVariable String collegeName) {
+        List<User> users = userService.getUsersByCollege(collegeName);
+        return ResponseEntity.ok(CommonResponse.success("Users from college retrieved successfully", users));
     }
 }

@@ -1,5 +1,6 @@
 package com.backend.topperfriendweb.controller;
 
+import com.backend.topperfriendweb.dto.CommonResponse;
 import com.backend.topperfriendweb.dto.studyplan.StudyPlanDTO;
 import com.backend.topperfriendweb.dto.studyplan.UpdateStudyPlanStatusRequest;
 import com.backend.topperfriendweb.dto.studyplan.UpdateStudyPlanTitleRequest;
@@ -32,83 +33,71 @@ public class StudyPlanController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = (String) auth.getPrincipal();
         return userRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
     }
 
     @PostMapping("/generate")
-    public ResponseEntity<?> generateStudyPlan() {
-        try {
-            User user = getLoggedInUser();
-            StudyPlanDTO studyPlan = studyPlanService.createStudyPlanFromLatestQuiz(user);
-            return ResponseEntity.ok(Map.of("success", true, "studyPlan", studyPlan));
-        } catch (Exception e) {
-            log.error("Error generating study plan", e);
-            return ResponseEntity.status(500)
-                    .body(Map.of("error", "Failed to create study plan: " + e.getMessage()));
+    public ResponseEntity<CommonResponse<StudyPlanDTO>> generateStudyPlan(
+            @RequestBody Map<String, String> request) {
+        User user = getLoggedInUser();
+        String weaknessAnalysis = request.get("weaknessAnalysis");
+
+        if (weaknessAnalysis == null || weaknessAnalysis.trim().isEmpty()) {
+            throw new IllegalArgumentException("Weakness analysis is required");
         }
+
+        StudyPlanDTO studyPlan = studyPlanService.createStudyPlanFromWeaknessAnalysis(user, weaknessAnalysis);
+        return ResponseEntity.ok(
+                CommonResponse.success("Study plan generated successfully", studyPlan)
+        );
     }
 
     @GetMapping
-    public ResponseEntity<?> getAllStudyPlans() {
-        try {
-            User user = getLoggedInUser();
-            List<StudyPlanDTO> studyPlans = studyPlanService.getUserStudyPlans(user.getId());
-            return ResponseEntity.ok(Map.of("success", true, "studyPlans", studyPlans));
-        } catch (Exception e) {
-            log.error("Error getting study plans", e);
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
-        }
+    public ResponseEntity<CommonResponse<List<StudyPlanDTO>>> getAllStudyPlans() {
+        User user = getLoggedInUser();
+        List<StudyPlanDTO> studyPlans = studyPlanService.getUserStudyPlans(user.getId());
+        return ResponseEntity.ok(
+                CommonResponse.success("Study plans retrieved successfully", studyPlans)
+        );
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getStudyPlanById(@PathVariable Long id) {
-        try {
-            User user = getLoggedInUser();
-            StudyPlanDTO studyPlan = studyPlanService.getStudyPlanById(id, user.getId());
-            return ResponseEntity.ok(Map.of("success", true, "studyPlan", studyPlan));
-        } catch (Exception e) {
-            log.error("Error getting study plan by ID", e);
-            return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
-        }
+    public ResponseEntity<CommonResponse<StudyPlanDTO>> getStudyPlanById(@PathVariable Long id) {
+        User user = getLoggedInUser();
+        StudyPlanDTO studyPlan = studyPlanService.getStudyPlanById(id, user.getId());
+        return ResponseEntity.ok(
+                CommonResponse.success("Study plan retrieved successfully", studyPlan)
+        );
     }
 
     @PatchMapping("/{id}/status")
-    public ResponseEntity<?> updateStudyPlanStatus(
+    public ResponseEntity<CommonResponse<StudyPlanDTO>> updateStudyPlanStatus(
             @PathVariable Long id,
             @Valid @RequestBody UpdateStudyPlanStatusRequest request) {
-        try {
-            User user = getLoggedInUser();
-            StudyPlanDTO studyPlan = studyPlanService.updateStudyPlanStatus(id, request, user.getId());
-            return ResponseEntity.ok(Map.of("success", true, "studyPlan", studyPlan));
-        } catch (Exception e) {
-            log.error("Error updating study plan status", e);
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
-        }
+        User user = getLoggedInUser();
+        StudyPlanDTO studyPlan = studyPlanService.updateStudyPlanStatus(id, request, user.getId());
+        return ResponseEntity.ok(
+                CommonResponse.success("Study plan status updated successfully", studyPlan)
+        );
     }
 
     @PatchMapping("/{id}/title")
-    public ResponseEntity<?> updateStudyPlanTitle(
+    public ResponseEntity<CommonResponse<StudyPlanDTO>> updateStudyPlanTitle(
             @PathVariable Long id,
             @Valid @RequestBody UpdateStudyPlanTitleRequest request) {
-        try {
-            User user = getLoggedInUser();
-            StudyPlanDTO studyPlan = studyPlanService.updateStudyPlanTitle(id, request, user.getId());
-            return ResponseEntity.ok(Map.of("success", true, "studyPlan", studyPlan));
-        } catch (Exception e) {
-            log.error("Error updating study plan title", e);
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
-        }
+        User user = getLoggedInUser();
+        StudyPlanDTO studyPlan = studyPlanService.updateStudyPlanTitle(id, request, user.getId());
+        return ResponseEntity.ok(
+                CommonResponse.success("Study plan title updated successfully", studyPlan)
+        );
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteStudyPlan(@PathVariable Long id) {
-        try {
-            User user = getLoggedInUser();
-            studyPlanService.deleteStudyPlan(id, user.getId());
-            return ResponseEntity.ok(Map.of("success", true, "message", "Study plan deleted successfully"));
-        } catch (Exception e) {
-            log.error("Error deleting study plan", e);
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
-        }
+    public ResponseEntity<CommonResponse<String>> deleteStudyPlan(@PathVariable Long id) {
+        User user = getLoggedInUser();
+        studyPlanService.deleteStudyPlan(id, user.getId());
+        return ResponseEntity.ok(
+                CommonResponse.success("Study plan deleted successfully", "Study plan deleted successfully")
+        );
     }
 }

@@ -27,10 +27,10 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserProfileDTO getUserProfileByUsername(String username) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         if (!user.getOnboardingCompleted()) {
-            throw new RuntimeException("User profile not completed");
+            throw new IllegalArgumentException("User profile not completed");
         }
 
         // Get user's notes
@@ -57,11 +57,17 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public List<User> searchUsers(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            throw new IllegalArgumentException("Search query cannot be empty");
+        }
         return userRepository.findByUsernameContainingIgnoreCaseOrNameContainingIgnoreCase(query, query);
     }
 
     @Transactional(readOnly = true)
     public List<User> getUsersByCollege(String collegeName) {
+        if (collegeName == null || collegeName.trim().isEmpty()) {
+            throw new IllegalArgumentException("College name cannot be empty");
+        }
         return userRepository.findByCollegeNameContainingIgnoreCase(collegeName);
     }
 }
