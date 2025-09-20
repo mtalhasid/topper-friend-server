@@ -10,4 +10,7 @@ import lombok.NoArgsConstructor;
 public class GoogleCallbackRequest {
     @NotBlank
     private String code;
+
+    // Optional OAuth state parameter; if provided, we will validate it to mitigate CSRF
+    private String state;
 }

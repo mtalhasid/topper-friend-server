@@ -6,20 +6,25 @@ import com.backend.topperfriendweb.dto.note.NoteDTO;
 import com.backend.topperfriendweb.dto.note.PaginationResponse;
 import com.backend.topperfriendweb.model.User;
 import com.backend.topperfriendweb.repository.UserRepository;
-import com.backend.topperfriendweb.service.NoteService;
+import com.backend.topperfriendweb.service.note.NoteService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/notes")
-@CrossOrigin(origins = "*")
+@PreAuthorize("isAuthenticated()")
+@Validated
 @RequiredArgsConstructor
 @Slf4j
 public class NoteController {
@@ -81,8 +86,8 @@ public class NoteController {
     public ResponseEntity<CommonResponse<PaginationResponse<NoteDTO>>> browseNotes(
             @RequestParam(required = false) String query,
             @RequestParam(required = false) String tag,
-            @RequestParam(defaultValue = "1") Integer page, // Changed from "0" to "1"
-            @RequestParam(defaultValue = "10") Integer limit) {
+            @RequestParam(defaultValue = "1") @Min(1) Integer page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(100) Integer limit) {
 
         Long currentUserId = getCurrentUserId();
         PaginationResponse<NoteDTO> results = noteService.browseNotes(query, tag, page, limit, currentUserId);
@@ -95,8 +100,8 @@ public class NoteController {
     public ResponseEntity<CommonResponse<PaginationResponse<NoteDTO>>> searchNotes(
             @RequestParam(required = false) String query,
             @RequestParam(required = false) String tag,
-            @RequestParam(defaultValue = "1") Integer page, // Already correct
-            @RequestParam(defaultValue = "10") Integer limit) {
+            @RequestParam(defaultValue = "1") @Min(1) Integer page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(100) Integer limit) {
 
         Long currentUserId = getCurrentUserId();
         PaginationResponse<NoteDTO> results = noteService.browseNotes(query, tag, page, limit, currentUserId);
@@ -109,8 +114,8 @@ public class NoteController {
     public ResponseEntity<CommonResponse<PaginationResponse<NoteDTO>>> getPaginatedNotes(
             @RequestParam(required = false) String query,
             @RequestParam(required = false) String tag,
-            @RequestParam(defaultValue = "1") Integer page, // Already correct
-            @RequestParam(defaultValue = "10") Integer limit) {
+            @RequestParam(defaultValue = "1") @Min(1) Integer page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(100) Integer limit) {
 
         Long currentUserId = getCurrentUserId();
         PaginationResponse<NoteDTO> results = noteService.browseNotes(query, tag, page, limit, currentUserId);

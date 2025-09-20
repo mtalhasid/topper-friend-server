@@ -5,7 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-// src/main/java/com/backend/topperfriendweb/repository/TempRegistrationRepository.java
 public interface TempRegistrationRepository extends JpaRepository<TempRegistration, Long> {
     Optional<TempRegistration> findByEmail(String email);
     boolean existsByEmail(String email);

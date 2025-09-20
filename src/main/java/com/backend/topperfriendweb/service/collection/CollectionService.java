@@ -1,16 +1,16 @@
-package com.backend.topperfriendweb.service;
+package com.backend.topperfriendweb.service.collection;
 
 import com.backend.topperfriendweb.dto.collection.*;
 import com.backend.topperfriendweb.dto.note.NoteDTO;
 import com.backend.topperfriendweb.dto.studyplan.StudyPlanDTO;
 import com.backend.topperfriendweb.model.Collection;
 import com.backend.topperfriendweb.model.CollectionItem;
-import com.backend.topperfriendweb.model.Note;
 import com.backend.topperfriendweb.model.User;
 import com.backend.topperfriendweb.repository.CollectionItemRepository;
 import com.backend.topperfriendweb.repository.CollectionRepository;
 import com.backend.topperfriendweb.repository.NoteRepository;
 import com.backend.topperfriendweb.repository.StudyPlanRepository;
+import com.backend.topperfriendweb.mapper.NoteMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,6 +28,7 @@ public class CollectionService {
     private final CollectionItemRepository collectionItemRepository;
     private final NoteRepository noteRepository;
     private final StudyPlanRepository studyPlanRepository;
+    private final NoteMapper noteMapper;
 
     @Transactional
     public CollectionDTO createCollection(CreateCollectionRequest request, User user) {
@@ -175,7 +176,7 @@ public class CollectionService {
         // Enrich with actual item data
         if ("NOTE".equalsIgnoreCase(item.getItemType())) {
             noteRepository.findById(item.getItemId()).ifPresent(note -> {
-                NoteDTO noteDTO = convertNoteToDTO(note);
+                NoteDTO noteDTO = noteMapper.toDTO(note);
                 dto.setNote(noteDTO);
             });
         } else if ("STUDY_PLAN".equalsIgnoreCase(item.getItemType())) {
@@ -185,22 +186,6 @@ public class CollectionService {
             });
         }
 
-        return dto;
-    }
-
-    private NoteDTO convertNoteToDTO(Note note) {
-        NoteDTO dto = new NoteDTO();
-        dto.set_id(note.getId().toString());
-        dto.setPostgresUserId(note.getUserId());
-        dto.setTitle(note.getTitle());
-        dto.setPdfLink(note.getPdfLink());
-        dto.setTags(note.getTags());
-        dto.setLikes(note.getLikes());
-        dto.setCreatedAt(note.getCreatedAt());
-        dto.setUpdatedAt(note.getUpdatedAt());
-        dto.setUsername(note.getUsername());
-        dto.setLikedByUsers(note.getLikedByUsers());
-        dto.setSavedByUsers(note.getSavedByUsers());
         return dto;
     }
 }

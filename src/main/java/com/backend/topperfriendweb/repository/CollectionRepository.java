@@ -8,6 +8,5 @@ import java.util.Optional;
 
 public interface CollectionRepository extends JpaRepository<Collection, Long> {
     List<Collection> findByUser(User user);
-    List<Collection> findByUser_Id(Long userId); // ✅ FIXED
     Optional<Collection> findByIdAndUser(Long id, User user);
 }

@@ -1,0 +1,105 @@
+Explanation of each line in application.properties and where it’s used
+
+Database (Neon Postgres)
+
+spring.datasource.url=...
+JDBC connection string to your Neon Postgres DB.
+Used by Spring Boot DataSource auto-configuration (no direct code reference).
+spring.datasource.username=...
+spring.datasource.password=...
+DB credentials used by Spring Boot to connect to Postgres.
+JPA / Hibernate
+
+spring.jpa.hibernate.ddl-auto=update
+Lets Hibernate auto-create/update tables from entities at runtime.
+Used by Spring Data JPA/Hibernate (no direct code reference).
+logging.level.org.hibernate.type.descriptor.sql=WARN
+logging.level.org.hibernate.orm.jdbc.bind=WARN
+Reduces verbosity of Hibernate parameter binding logs.
+Affects logging framework configuration.
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+logging.level.org.hibernate.SQL=DEBUG
+logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
+Enables and formats SQL logging for transparency, useful in dev.
+Affects logging only.
+Mail (Mailjet)
+
+mailjet.apiKey=...
+mailjet.apiSecret=...
+mailjet.fromEmail=...
+mailjet.fromName=TopperFriend
+Read by your mail service to send emails.
+Likely used in service/auth/EmailService.java (and/or MailjetService if present).
+Server
+
+server.port=8080
+Sets the HTTP port for the Spring Boot server.
+Used by Spring Boot’s embedded server (Tomcat) automatically.
+Gemini (Google Generative Language API)
+
+gemini.apiKey=...
+Read by 
+service/quiz/GeminiService.java
+ via @Value("${gemini.apiKey}").
+Used for calling the Gemini API in 
+callGemini()
+.
+Google OAuth Configuration
+
+google.oauth.client-id=...
+google.oauth.client-secret=...
+These are used by your Google OAuth integration to exchange the authorization code for tokens and fetch user info.
+Typically read via @Value inside service/auth/GoogleAuthService.java (not shown here but that’s the expected usage).
+google.oauth.redirect-uri=http://localhost:3000/auth/google/callback
+Now explicitly injected into 
+service/auth/AuthService.java
+ via:
+@Value("${google.oauth.redirect-uri:...}") private String googleRedirectUri;
+Passed into googleAuthService.exchangeCodeForTokens(authorizationCode, googleRedirectUri) so your redirect is not hardcoded.
+Centralized CORS
+
+app.cors.allowed-origins=http://localhost:3000
+Consumed in 
+config/WebConfig.java
+:
+@Value("${app.cors.allowed-origins:*}") then split and used in .allowedOrigins(...).
+Controls which origins can call your APIs.
+For production, replace with your real domains, e.g. https://topperfriend.app,https://www.topperfriend.app.
+Resilience4j (Circuit Breaker for Gemini)
+
+resilience4j.circuitbreaker.instances.gemini.register-health-indicator=true
+resilience4j.circuitbreaker.instances.gemini.sliding-window-size=20
+resilience4j.circuitbreaker.instances.gemini.permitted-number-of-calls-in-half-open-state=3
+resilience4j.circuitbreaker.instances.gemini.minimum-number-of-calls=10
+resilience4j.circuitbreaker.instances.gemini.failure-rate-threshold=50
+resilience4j.circuitbreaker.instances.gemini.wait-duration-in-open-state=30s
+These configure the circuit breaker named gemini.
+Used by 
+service/quiz/GeminiService.java
+ on 
+generateContent()
+:
+@CircuitBreaker(name = "gemini", fallbackMethod = "fallbackGenerateContent")
+When failure thresholds are exceeded, the breaker opens and the fallback returns the friendly message:
+“Service temporarily unavailable. Please try again later.”
+JWT (if you add these; they exist in code with defaults)
+
+app.jwt.secret=...
+app.jwt.expiration-ms=...
+app.jwt.clock-skew-seconds=30
+Used by 
+utils/JwtUtil.java
+ to create and parse JWTs and tolerate small clock skews.
+Where key properties are wired in code
+
+config/WebConfig.java
+Uses app.cors.allowed-origins to set .allowedOrigins(...).
+service/quiz/GeminiService.java
+Uses gemini.apiKey.
+Circuit breaker gemini driven by resilience4j config above.
+service/auth/AuthService.java
+Uses google.oauth.redirect-uri via @Value.
+Calls GoogleAuthService to exchange tokens (which should read google.oauth.client-id and google.oauth.client-secret).
+utils/JwtUtil.java
+Uses JWT-related properties (if you set them) and has defaults if not.

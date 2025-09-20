@@ -1,61 +1,24 @@
-package com.backend.topperfriendweb.service;
+package com.backend.topperfriendweb.service.studyplan;
 
 import com.backend.topperfriendweb.model.StudyPlan;
 import com.backend.topperfriendweb.model.User;
-import com.backend.topperfriendweb.repository.QuizRepository;
 import com.backend.topperfriendweb.repository.StudyPlanRepository;
-import org.springframework.beans.factory.annotation.Value;
+import com.backend.topperfriendweb.service.quiz.GeminiService;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.List;
-import java.util.Map;
 
 @Service
 public class AiChatService {
-
-    private final QuizRepository quizRepository;
     private final StudyPlanRepository studyPlanRepository;
-    private final WebClient webClient;
-
-    @Value("${gemini.apiKey}")
-    private String apiKey;
+    private final GeminiService geminiService;
 
     private String callGeminiAPI(String prompt) {
-        Map<String, Object> request = Map.of(
-                "contents", List.of(Map.of(
-                        "role", "user",
-                        "parts", List.of(Map.of("text", prompt))))
-        );
-
-        Map response = webClient.post()
-                .uri("/models/gemini-1.5-flash:generateContent?key=" + apiKey)
-                .bodyValue(request)
-                .retrieve()
-                .bodyToMono(Map.class)
-                .block();
-
-        if (response != null) {
-            List candidates = (List) response.get("candidates");
-            if (candidates != null && !candidates.isEmpty()) {
-                Map candidate = (Map) candidates.get(0);
-                Map content = (Map) candidate.get("content");
-                List parts = (List) content.get("parts");
-                if (parts != null && !parts.isEmpty()) {
-                    return (String) ((Map) parts.get(0)).get("text");
-                }
-            }
-        }
-
-        return "No response from AI";
+        return geminiService.generateContent(prompt);
     }
 
-    public AiChatService(QuizRepository quizRepository, StudyPlanRepository studyPlanRepository, WebClient.Builder builder) {
-        this.quizRepository = quizRepository;
+    public AiChatService(StudyPlanRepository studyPlanRepository, GeminiService geminiService) {
         this.studyPlanRepository = studyPlanRepository;
-        this.webClient = builder
-                .baseUrl("https://generativelanguage.googleapis.com/v1beta")
-                .build();
+        this.geminiService = geminiService;
     }
 
     public String chatWithStudyPlanWeakness(User user, String message, Long studyPlanId) {

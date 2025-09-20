@@ -1,5 +1,5 @@
 // src/main/java/com/backend/topperfriendweb/service/MailjetService.java
-package com.backend.topperfriendweb.service;
+package com.backend.topperfriendweb.service.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;

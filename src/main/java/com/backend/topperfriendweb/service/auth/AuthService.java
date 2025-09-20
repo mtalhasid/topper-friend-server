@@ -1,4 +1,4 @@
-package com.backend.topperfriendweb.service;
+package com.backend.topperfriendweb.service.auth;
 
 import com.backend.topperfriendweb.dto.auth.LoginResponse;
 import com.backend.topperfriendweb.dto.auth.OnboardingRequest;
@@ -11,41 +11,44 @@ import com.backend.topperfriendweb.utils.JwtUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Random;
 
 @Service
 public class AuthService {
-    @Value("${google.oauth.client-id}")
-    private String googleClientId;
-
-    @Value("${google.oauth.client-secret}")
-    private String googleClientSecret;
-
     private final UserRepository userRepository;
     private final TempRegistrationRepository tempRegistrationRepository;
     private final PasswordEncoder passwordEncoder;
-    private final MailjetService mailjetService;
+    private final EmailService emailService;
+    private final OtpService otpService;
+    private final GoogleAuthService googleAuthService;
     private final JwtUtil jwtUtil;
+    private final OAuthStateService oAuthStateService;
+
+    @Value("${google.oauth.redirect-uri:http://localhost:3000/auth/google/callback}")
+    private String googleRedirectUri;
 
     private static final int OTP_EXPIRY_MINUTES = 10;
 
     public AuthService(UserRepository userRepository,
                        TempRegistrationRepository tempRegistrationRepository,
                        PasswordEncoder passwordEncoder,
-                       MailjetService mailjetService,
-                       JwtUtil jwtUtil) {
+                       EmailService emailService,
+                       OtpService otpService,
+                       GoogleAuthService googleAuthService,
+                       JwtUtil jwtUtil,
+                       OAuthStateService oAuthStateService) {
         this.userRepository = userRepository;
         this.tempRegistrationRepository = tempRegistrationRepository;
         this.passwordEncoder = passwordEncoder;
-        this.mailjetService = mailjetService;
+        this.emailService = emailService;
+        this.otpService = otpService;
+        this.googleAuthService = googleAuthService;
         this.jwtUtil = jwtUtil;
+        this.oAuthStateService = oAuthStateService;
     }
 
     @Transactional
@@ -70,7 +73,7 @@ public class AuthService {
         tempReg.setUsername(req.getUsername());
 
         // Generate and store OTP
-        String otp = generateOtp();
+        String otp = otpService.generateOtp();
         tempReg.setOtpCode(otp);
         tempReg.setExpiresAt(LocalDateTime.now().plusMinutes(OTP_EXPIRY_MINUTES));
 
@@ -78,7 +81,7 @@ public class AuthService {
 
         // Send OTP email
         try {
-            mailjetService.sendVerificationEmail(emailLower, req.getName(), otp);
+            emailService.sendVerificationEmail(emailLower, req.getName(), otp);
             return "OTP sent to email";
         } catch (Exception e) {
             // Delete temp registration if email fails
@@ -110,15 +113,28 @@ public class AuthService {
         return new LoginResponse(true, "Login successful", token);
     }
 
-    //  Google callback method that returns LoginResponse
+    //  Google callback method that returns LoginResponse (backward compatible)
     public LoginResponse handleGoogleCallback(String authorizationCode) {
+        return handleGoogleCallback(authorizationCode, null);
+    }
+
+    //  Google callback with optional state validation
+    public LoginResponse handleGoogleCallback(String authorizationCode, String state) {
         try {
+            // Validate OAuth state if provided
+            if (state != null && !state.isBlank()) {
+                boolean ok = oAuthStateService.validateAndConsume(state);
+                if (!ok) {
+                    throw new IllegalArgumentException("Invalid OAuth state");
+                }
+            }
+
             // Exchange authorization code for access token
-            Map<String, Object> tokenData = exchangeCodeForTokens(authorizationCode);
+            Map<String, Object> tokenData = googleAuthService.exchangeCodeForTokens(authorizationCode, googleRedirectUri);
             String accessToken = (String) tokenData.get("access_token");
 
             // Get user info from Google
-            Map<String, Object> userInfo = getUserInfoFromGoogle(accessToken);
+            Map<String, Object> userInfo = googleAuthService.getUserInfo(accessToken);
 
             String email = (String) userInfo.get("email");
             String name = (String) userInfo.get("name");
@@ -191,79 +207,18 @@ public class AuthService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
     }
 
-    private String generateOtp() {
-        int code = 100000 + new Random().nextInt(900000);
-        return String.valueOf(code);
-    }
-
     @Transactional
     public Long verifyOtp(String email, String code) {
-        String emailLower = email.trim().toLowerCase();
-
-        // Find temporary registration
-        TempRegistration tempReg = tempRegistrationRepository.findByEmailAndOtpCode(emailLower, code)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid or expired OTP"));
-
-        // Check if OTP is expired
-        if (tempReg.getExpiresAt().isBefore(LocalDateTime.now())) {
-            tempRegistrationRepository.deleteByEmail(emailLower);
-            throw new IllegalArgumentException("OTP expired");
-        }
-
-        // NOW create the actual user
-        User user = new User();
-        user.setUsername(tempReg.getUsername());
-        user.setName(tempReg.getName());
-        user.setEmail(tempReg.getEmail());
-        user.setPassword(tempReg.getPassword());
-        user.setEmailVerified(LocalDateTime.now());
-
-        User savedUser = userRepository.save(user);
-
-        // Delete temporary registration
-        tempRegistrationRepository.deleteByEmail(emailLower);
-
-        return savedUser.getId();
+        return otpService.verifyOtp(email, code);
     }
 
     @Transactional
     public void resendOtp(String email) {
         try {
-            // Check if temporary registration exists
-            TempRegistration tempReg = tempRegistrationRepository.findByEmail(email)
-                    .orElseThrow(() -> new IllegalArgumentException("No registration in progress"));
-
-            // Generate new OTP
-            String newOtp = generateOtp();
-            tempReg.setOtpCode(newOtp);
-            tempReg.setExpiresAt(LocalDateTime.now().plusMinutes(OTP_EXPIRY_MINUTES));
-
-            tempRegistrationRepository.save(tempReg);
-
-            // Send email
-            mailjetService.sendVerificationEmail(email, tempReg.getName(), newOtp);
+            OtpService.ResendResult result = otpService.resendOtp(email);
+            emailService.sendVerificationEmail(email, result.getName(), result.getOtp());
         } catch (Exception e) {
             throw new RuntimeException("Failed to resend OTP: " + e.getMessage(), e);
         }
-    }
-
-    private Map<String, Object> exchangeCodeForTokens(String code) {
-        String tokenUrl = "https://oauth2.googleapis.com/token";
-
-        Map<String, String> params = new HashMap<>();
-        params.put("code", code);
-        params.put("client_id", googleClientId);
-        params.put("client_secret", googleClientSecret);
-        params.put("redirect_uri", "http://localhost:3000/auth/google/callback");
-        params.put("grant_type", "authorization_code");
-
-        RestTemplate restTemplate = new RestTemplate();
-        return restTemplate.postForObject(tokenUrl, params, Map.class);
-    }
-
-    private Map<String, Object> getUserInfoFromGoogle(String accessToken) {
-        String userInfoUrl = "https://www.googleapis.com/oauth2/v2/userinfo?access_token=" + accessToken;
-        RestTemplate restTemplate = new RestTemplate();
-        return restTemplate.getForObject(userInfoUrl, Map.class);
     }
 }

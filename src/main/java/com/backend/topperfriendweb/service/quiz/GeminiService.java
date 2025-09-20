@@ -1,4 +1,4 @@
-package com.backend.topperfriendweb.service;
+package com.backend.topperfriendweb.service.quiz;
 
 import com.backend.topperfriendweb.repository.QuizRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -8,6 +8,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 
 import java.time.Duration;
 import java.util.List;
@@ -91,6 +92,18 @@ public class GeminiService {
             }
             throw new IllegalArgumentException("Failed to call Gemini API: " + e.getMessage(), e);
         }
+    }
+
+    // Generic content generation entrypoint for other services to reuse
+    @CircuitBreaker(name = "gemini", fallbackMethod = "fallbackGenerateContent")
+    public String generateContent(String prompt) {
+        return callGemini(prompt);
+    }
+
+    // Fallback method signature must match the original + Throwable at the end
+    private String fallbackGenerateContent(String prompt, Throwable t) {
+        log.warn("Gemini circuit breaker fallback invoked: {}", t.getMessage());
+        return "Service temporarily unavailable. Please try again later.";
     }
 
     public String summarize(String text) {

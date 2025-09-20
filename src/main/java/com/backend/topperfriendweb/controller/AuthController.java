@@ -2,32 +2,34 @@ package com.backend.topperfriendweb.controller;
 
 import com.backend.topperfriendweb.dto.CommonResponse;
 import com.backend.topperfriendweb.dto.auth.*;
-import com.backend.topperfriendweb.dto.note.NoteDTO;
 import com.backend.topperfriendweb.dto.userprofile.UserProfileDTO;
+import com.backend.topperfriendweb.mapper.UserMapper;
 import com.backend.topperfriendweb.model.User;
-import com.backend.topperfriendweb.service.AuthService;
-import com.backend.topperfriendweb.service.NoteService;
+import com.backend.topperfriendweb.service.auth.AuthService;
+import com.backend.topperfriendweb.service.note.NoteService;
 import com.backend.topperfriendweb.utils.JwtUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
+@Validated
 @RestController
 @RequestMapping("/api/auth")
-@Validated
+@PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 @Slf4j
 public class AuthController {
     private final AuthService authService;
     private final JwtUtil jwtUtil;
     private final NoteService noteService;
+    private final UserMapper userMapper;
+
 
     @PostMapping("/register")
     public ResponseEntity<CommonResponse<RegisterResponse>> register(@Valid @RequestBody RegisterRequest req) {
@@ -78,7 +80,7 @@ public class AuthController {
         User user = authService.getUserByEmail(email);
         User updatedUser = authService.completeOnboarding(user.getId(), request);
 
-        UserProfileDTO userProfile = createUserProfileDTO(updatedUser);
+        UserProfileDTO userProfile = userMapper.toUserProfileDTO(updatedUser);
         return ResponseEntity.ok(CommonResponse.success("Onboarding completed successfully", userProfile));
     }
 
@@ -98,7 +100,7 @@ public class AuthController {
         String email = (String) auth.getPrincipal();
         User user = authService.getUserByEmail(email);
 
-        UserProfileDTO userProfile = createUserProfileDTO(user);
+        UserProfileDTO userProfile = userMapper.toUserProfileDTO(user);
         return ResponseEntity.ok(CommonResponse.success("User info retrieved successfully", userProfile));
     }
 
@@ -106,30 +108,7 @@ public class AuthController {
     public ResponseEntity<CommonResponse<LoginResponse>> googleCallback(@Valid @RequestBody GoogleCallbackRequest request) {
         log.info("Google callback with authorization code");
 
-        LoginResponse loginData = authService.handleGoogleCallback(request.getCode());
+        LoginResponse loginData = authService.handleGoogleCallback(request.getCode(), request.getState());
         return ResponseEntity.ok(CommonResponse.success("Google login successful", loginData));
-    }
-
-    private UserProfileDTO createUserProfileDTO(User user) {
-        UserProfileDTO dto = new UserProfileDTO();
-        dto.setId(user.getId());
-        dto.setUsername(user.getUsername());
-        dto.setName(user.getName());
-        dto.setEmail(user.getEmail());
-        dto.setCollegeName(user.getCollegeName());
-        dto.setRollNumber(user.getRollNumber());
-        dto.setImage(user.getImage());
-        dto.setOnboardingCompleted(user.getOnboardingCompleted());
-        dto.setEmailVerified(user.getEmailVerified());
-        dto.setCreatedAt(user.getCreatedAt());
-        dto.setUpdatedAt(user.getUpdatedAt());
-
-        // Add notes data - let GlobalExceptionHandler handle any errors
-        List<NoteDTO> userNotes = noteService.getUserNotes(user.getId());
-        dto.setNotes(userNotes);
-        dto.setTotalNotes(userNotes.size());
-        dto.setTotalLikes(userNotes.stream().mapToInt(NoteDTO::getLikes).sum());
-
-        return dto;
     }
 }

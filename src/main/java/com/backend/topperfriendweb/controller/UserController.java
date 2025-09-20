@@ -3,16 +3,20 @@ package com.backend.topperfriendweb.controller;
 import com.backend.topperfriendweb.dto.CommonResponse;
 import com.backend.topperfriendweb.dto.userprofile.UserProfileDTO;
 import com.backend.topperfriendweb.model.User;
-import com.backend.topperfriendweb.service.UserService;
+import com.backend.topperfriendweb.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
+@PreAuthorize("isAuthenticated()")
+@Validated
 @RequiredArgsConstructor
 @Slf4j
 public class UserController {

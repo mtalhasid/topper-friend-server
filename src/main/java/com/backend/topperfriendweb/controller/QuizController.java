@@ -4,20 +4,24 @@ import com.backend.topperfriendweb.dto.CommonResponse;
 import com.backend.topperfriendweb.dto.quiz.*;
 import com.backend.topperfriendweb.model.User;
 import com.backend.topperfriendweb.repository.UserRepository;
-import com.backend.topperfriendweb.service.GeminiService;
-import com.backend.topperfriendweb.service.QuizService;
+import com.backend.topperfriendweb.service.quiz.GeminiService;
+import com.backend.topperfriendweb.service.quiz.QuizService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/quiz-generator")
+@PreAuthorize("isAuthenticated()")
+@Validated
 @RequiredArgsConstructor
 @Slf4j
 public class QuizController {

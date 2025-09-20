@@ -20,6 +20,10 @@ public class JwtUtil {
     @Value("${app.jwt.expiration-ms:86400000}")
     private long expirationMs;
 
+    // Allow small clock skew in seconds to tolerate minor time differences between systems
+    @Value("${app.jwt.clock-skew-seconds:30}")
+    private long clockSkewSeconds;
+
     private SecretKeySpec getSigningKey() {
         return new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8),
                 SignatureAlgorithm.HS256.getJcaName());
@@ -43,6 +47,7 @@ public class JwtUtil {
     public String getEmailFromToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
+                .setAllowedClockSkewSeconds(clockSkewSeconds)
                 .build()
                 .parseClaimsJws(token)
                 .getBody()

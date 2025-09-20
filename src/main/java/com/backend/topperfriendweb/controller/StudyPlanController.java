@@ -6,7 +6,7 @@ import com.backend.topperfriendweb.dto.studyplan.UpdateStudyPlanStatusRequest;
 import com.backend.topperfriendweb.dto.studyplan.UpdateStudyPlanTitleRequest;
 import com.backend.topperfriendweb.model.User;
 import com.backend.topperfriendweb.repository.UserRepository;
-import com.backend.topperfriendweb.service.StudyPlanService;
+import com.backend.topperfriendweb.service.studyplan.StudyPlanService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/study-plans")
 @PreAuthorize("isAuthenticated()")
+@Validated
 @RequiredArgsConstructor
 @Slf4j
 public class StudyPlanController {

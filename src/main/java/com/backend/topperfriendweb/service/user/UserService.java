@@ -1,9 +1,9 @@
-package com.backend.topperfriendweb.service;
+package com.backend.topperfriendweb.service.user;
 
-import com.backend.topperfriendweb.dto.note.NoteDTO;
 import com.backend.topperfriendweb.dto.userprofile.UserProfileDTO;
 import com.backend.topperfriendweb.model.User;
 import com.backend.topperfriendweb.repository.UserRepository;
+import com.backend.topperfriendweb.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,7 +17,7 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final NoteService noteService;
+    private final UserMapper userMapper;
 
     @Transactional(readOnly = true)
     public List<User> getAllUsersWithCompletedOnboarding() {
@@ -33,26 +33,8 @@ public class UserService {
             throw new IllegalArgumentException("User profile not completed");
         }
 
-        // Get user's notes
-        List<NoteDTO> userNotes = noteService.getUserNotes(user.getId());
-        int totalLikes = userNotes.stream().mapToInt(NoteDTO::getLikes).sum();
-
-        return new UserProfileDTO(
-                user.getId(),
-                user.getUsername(),
-                user.getName(),
-                user.getEmail(),
-                user.getCollegeName(),
-                user.getRollNumber(),
-                user.getImage(),
-                user.getOnboardingCompleted(),
-                user.getEmailVerified(),
-                user.getCreatedAt(),
-                user.getUpdatedAt(),
-                userNotes,
-                userNotes.size(),
-                totalLikes
-        );
+        // Delegate to mapper to build full profile with notes and aggregates
+        return userMapper.toUserProfileDTO(user);
     }
 
     @Transactional(readOnly = true)

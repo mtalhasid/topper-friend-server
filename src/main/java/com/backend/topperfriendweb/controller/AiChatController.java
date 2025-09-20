@@ -2,14 +2,16 @@ package com.backend.topperfriendweb.controller;
 
 import com.backend.topperfriendweb.model.User;
 import com.backend.topperfriendweb.repository.UserRepository;
-import com.backend.topperfriendweb.service.AiChatService;
+import com.backend.topperfriendweb.service.studyplan.AiChatService;
 import com.backend.topperfriendweb.utils.JwtUtil;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
 @RestController
+@PreAuthorize("isAuthenticated()")
 @RequestMapping("/api/ai-chat")
 public class AiChatController {
 
