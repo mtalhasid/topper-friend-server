@@ -73,7 +73,7 @@ public class NoteService {
         return url;
     }
 
-    // FAST VERSION - USES RAW SQL WITH CURRENT USER'S LIKE/SAVE STATUS
+    // USES RAW SQL WITH CURRENT USER'S LIKE/SAVE STATUS
     public PaginationResponse<NoteDTO> browseNotes(String query, String tag, Integer page, Integer limit, Long currentUserId) {
         // Validate pagination parameters
         if (page == null || page < 1) {

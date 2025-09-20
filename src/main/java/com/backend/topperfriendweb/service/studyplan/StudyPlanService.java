@@ -56,41 +56,6 @@ public class StudyPlanService {
         }
     }
 
-    @Transactional
-    public StudyPlanDTO createStudyPlanFromLatestQuiz(User user) {
-        try {
-            // Get latest quiz (not just weakness)
-            Quiz latestQuiz = quizRepository.findTopByUserIdOrderByCreatedAtDesc(user.getId())
-                    .orElseThrow(() -> new IllegalArgumentException("No quiz found to create study plan from"));
-
-            String weakness = latestQuiz.getWeaknessSummary();
-            if (weakness == null || weakness.isEmpty()) {
-                weakness = "No weakness analysis available.";
-            }
-
-            // Generate 4-week study plan tasks using AI
-            String tasks = geminiService.generateStudyPlanTasks(weakness);
-
-            // Create StudyPlan
-            StudyPlan plan = new StudyPlan();
-            plan.setUser(user);
-            plan.setQuiz(latestQuiz); // Link the quiz
-            plan.setTasks(tasks);
-            plan.setStatus(StudyPlanStatus.active);
-
-            StudyPlan savedPlan = studyPlanRepository.save(plan);
-            log.info("Study plan created successfully for user: {}", user.getId());
-            return new StudyPlanDTO(savedPlan);
-
-        } catch (IllegalArgumentException e) {
-            log.warn("Cannot create study plan for user {}: {}", user.getId(), e.getMessage());
-            throw e;
-        } catch (Exception e) {
-            log.error("Error creating study plan from quiz for user: {}", user.getId(), e);
-            throw new RuntimeException("Failed to create study plan: " + e.getMessage());
-        }
-    }
-
     @Transactional(readOnly = true)
     public List<StudyPlanDTO> getUserStudyPlans(Long userId) {
         try {

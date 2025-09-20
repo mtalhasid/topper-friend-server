@@ -21,28 +21,6 @@ public class AiChatService {
     @Value("${gemini.apiKey}")
     private String apiKey;
 
-    public AiChatService(QuizRepository quizRepository, StudyPlanRepository studyPlanRepository, WebClient.Builder builder) {
-        this.quizRepository = quizRepository;
-        this.studyPlanRepository = studyPlanRepository;
-        this.webClient = builder
-                .baseUrl("https://generativelanguage.googleapis.com/v1beta")
-                .build();
-    }
-
-    // NEW METHOD - Add this
-    public String chatWithStudyPlanWeakness(User user, String message, Long studyPlanId) {
-        StudyPlan studyPlan = studyPlanRepository.findById(studyPlanId)
-                .orElseThrow(() -> new RuntimeException("Study plan not found"));
-
-        String weakness = studyPlan.getQuiz().getWeaknessSummary();
-
-        String prompt = "You are an AI tutor. The user has these weaknesses: \n"
-                + weakness + "\nAnswer their question/help them accordingly.\nUser: " + message;
-
-        return callGeminiAPI(prompt);
-    }
-
-    // Extract the common API call logic
     private String callGeminiAPI(String prompt) {
         Map<String, Object> request = Map.of(
                 "contents", List.of(Map.of(
@@ -70,5 +48,25 @@ public class AiChatService {
         }
 
         return "No response from AI";
+    }
+
+    public AiChatService(QuizRepository quizRepository, StudyPlanRepository studyPlanRepository, WebClient.Builder builder) {
+        this.quizRepository = quizRepository;
+        this.studyPlanRepository = studyPlanRepository;
+        this.webClient = builder
+                .baseUrl("https://generativelanguage.googleapis.com/v1beta")
+                .build();
+    }
+
+    public String chatWithStudyPlanWeakness(User user, String message, Long studyPlanId) {
+        StudyPlan studyPlan = studyPlanRepository.findById(studyPlanId)
+                .orElseThrow(() -> new RuntimeException("Study plan not found"));
+
+        String weakness = studyPlan.getQuiz().getWeaknessSummary();
+
+        String prompt = "You are an AI tutor. The user has these weaknesses: \n"
+                + weakness + "\nAnswer their question/help them accordingly.\nUser: " + message;
+
+        return callGeminiAPI(prompt);
     }
 }

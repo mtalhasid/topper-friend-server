@@ -1,10 +1,6 @@
 package com.backend.topperfriendweb.service;
 
-import com.backend.topperfriendweb.model.Quiz;
-import com.backend.topperfriendweb.model.User;
 import com.backend.topperfriendweb.repository.QuizRepository;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -31,38 +27,6 @@ public class GeminiService {
                 .baseUrl("https://generativelanguage.googleapis.com/v1beta")
                 .build();
         this.quizRepository = quizRepository;
-    }
-
-    public String summarize(String text) {
-        if (text == null || text.trim().isEmpty()) {
-            throw new IllegalArgumentException("Text cannot be empty for summarization");
-        }
-
-        String prompt = "Please summarize the following text in a clear and concise manner:\n" + text;
-        return callGemini(prompt);
-    }
-
-    public String generateQuizJson(String text) {
-        if (text == null || text.trim().isEmpty()) {
-            throw new IllegalArgumentException("Text cannot be empty for quiz generation");
-        }
-
-        String prompt = "Generate a multiple-choice quiz in strict JSON format like this, Generate a quiz in strict JSON format ONLY. Do NOT include ```json or markdown formatting. Just raw JSON array.\n:\n" +
-                "[\n" +
-                "  {\n" +
-                "    \"question\": \"What is 2+2?\",\n" +
-                "    \"options\": [\"1\", \"2\", \"3\", \"4\"],\n" +
-                "    \"correctAnswer\": 3\n" +
-                "  },\n" +
-                "  {\n" +
-                "    \"question\": \"Which is the largest planet?\",\n" +
-                "    \"options\": [\"Earth\", \"Mars\", \"Jupiter\", \"Venus\"],\n" +
-                "    \"correctAnswer\": 2\n" +
-                "  }\n" +
-                "]\n\n" +
-                "Please generate 2-3 similar questions based on the following text:\n" + text;
-
-        return callGemini(prompt);
     }
 
     private String callGemini(String prompt) {
@@ -127,6 +91,38 @@ public class GeminiService {
             }
             throw new IllegalArgumentException("Failed to call Gemini API: " + e.getMessage(), e);
         }
+    }
+
+    public String summarize(String text) {
+        if (text == null || text.trim().isEmpty()) {
+            throw new IllegalArgumentException("Text cannot be empty for summarization");
+        }
+
+        String prompt = "Please summarize the following text in a clear and concise manner:\n" + text;
+        return callGemini(prompt);
+    }
+
+    public String generateQuizJson(String text) {
+        if (text == null || text.trim().isEmpty()) {
+            throw new IllegalArgumentException("Text cannot be empty for quiz generation");
+        }
+
+        String prompt = "Generate a multiple-choice quiz in strict JSON format like this, Generate a quiz in strict JSON format ONLY. Do NOT include ```json or markdown formatting. Just raw JSON array.\n:\n" +
+                "[\n" +
+                "  {\n" +
+                "    \"question\": \"What is 2+2?\",\n" +
+                "    \"options\": [\"1\", \"2\", \"3\", \"4\"],\n" +
+                "    \"correctAnswer\": 3\n" +
+                "  },\n" +
+                "  {\n" +
+                "    \"question\": \"Which is the largest planet?\",\n" +
+                "    \"options\": [\"Earth\", \"Mars\", \"Jupiter\", \"Venus\"],\n" +
+                "    \"correctAnswer\": 2\n" +
+                "  }\n" +
+                "]\n\n" +
+                "Please generate 2-3 similar questions based on the following text:\n" + text;
+
+        return callGemini(prompt);
     }
 
     public String analyzeWeakness(String wrongQuestionsJson) {

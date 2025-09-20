@@ -110,52 +110,7 @@ public class AuthService {
         return new LoginResponse(true, "Login successful", token);
     }
 
-    // Keep the old method for backward compatibility if needed elsewhere
-    @Transactional(readOnly = true)
-    public Map<String, Object> loginEnhanced(String email, String password) {
-        String emailLower = email.trim().toLowerCase();
-        Optional<User> optionalUser = userRepository.findByEmailIgnoreCase(emailLower);
-
-        Map<String, Object> response = new HashMap<>();
-
-        if (optionalUser.isEmpty()) {
-            response.put("success", false);
-            response.put("message", "User not found");
-            return response;
-        }
-
-        User user = optionalUser.get();
-
-        if (user.getEmailVerified() == null) {
-            response.put("success", false);
-            response.put("message", "Email not verified");
-            return response;
-        }
-
-        if (!passwordEncoder.matches(password, user.getPassword())) {
-            response.put("success", false);
-            response.put("message", "Incorrect password");
-            return response;
-        }
-
-        String token = jwtUtil.generateTokenWithUserInfo(user.getId(), user.getEmail(), user.getName());
-
-        response.put("success", true);
-        response.put("message", "Login successful");
-        response.put("token", token);
-
-        Map<String, Object> userInfo = new HashMap<>();
-        userInfo.put("id", user.getId());
-        userInfo.put("email", user.getEmail());
-        userInfo.put("name", user.getName());
-        userInfo.put("username", user.getUsername());
-        userInfo.put("onboardingCompleted", user.getOnboardingCompleted());
-
-        response.put("user", userInfo);
-        return response;
-    }
-
-    // Clean Google callback method that returns LoginResponse
+    //  Google callback method that returns LoginResponse
     public LoginResponse handleGoogleCallback(String authorizationCode) {
         try {
             // Exchange authorization code for access token
@@ -233,12 +188,6 @@ public class AuthService {
     @Transactional(readOnly = true)
     public User getUserByEmail(String email) {
         return userRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-    }
-
-    @Transactional(readOnly = true)
-    public User getUserById(Long userId) {
-        return userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
     }
 
