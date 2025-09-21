@@ -96,4 +96,36 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
     // FAST TAGS QUERY
     @Query(value = "SELECT DISTINCT tag FROM note_tags ORDER BY tag", nativeQuery = true)
     List<String> findAllTagsFast();
+
+    // Bulk load notes by IDs with aggregated fields for mapping via NoteMapper.rawToDTO
+    @Query(value = """
+    SELECT n.id, n.user_id, n.title, n.pdf_link, n.likes, n.created_at, n.updated_at, n.username,
+           COALESCE(string_agg(DISTINCT nt.tag, ','), '') as tags_concat,
+           COALESCE(string_agg(DISTINCT nlu.user_id::text, ','), '') as liked_users_concat,
+           COALESCE(string_agg(DISTINCT nsu.user_id::text, ','), '') as saved_users_concat
+    FROM notes n
+    LEFT JOIN note_tags nt ON n.id = nt.note_id
+    LEFT JOIN note_liked_users nlu ON n.id = nlu.note_id
+    LEFT JOIN note_saved_users nsu ON n.id = nsu.note_id
+    WHERE n.id IN (:ids)
+    GROUP BY n.id, n.user_id, n.title, n.pdf_link, n.likes, n.created_at, n.updated_at, n.username
+    """, nativeQuery = true)
+    List<Object[]> findNotesByIds(@Param("ids") List<Long> ids);
+
+    // Lightweight bulk loader for collections page (no joins)
+    @Query(value = """
+    SELECT n.id, n.user_id, n.title, n.pdf_link, n.likes, n.created_at, n.updated_at, n.username
+    FROM notes n
+    WHERE n.id IN (:ids)
+    """, nativeQuery = true)
+    List<Object[]> findNotesByIdsBasic(@Param("ids") List<Long> ids);
+
+    // Lightweight fetch of all notes for a user (no joins) for fast profile page
+    @Query(value = """
+    SELECT n.id, n.user_id, n.title, n.pdf_link, n.likes, n.created_at, n.updated_at, n.username
+    FROM notes n
+    WHERE n.user_id = :userId
+    ORDER BY n.created_at DESC
+    """, nativeQuery = true)
+    List<Object[]> findUserNotesBasic(@Param("userId") Long userId);
 }

@@ -4,7 +4,8 @@ import com.backend.topperfriendweb.dto.CommonResponse;
 import com.backend.topperfriendweb.dto.collection.*;
 import com.backend.topperfriendweb.model.User;
 import com.backend.topperfriendweb.repository.UserRepository;
-import com.backend.topperfriendweb.service.collection.CollectionService;
+import com.backend.topperfriendweb.service.collection.CollectionQueryService;
+import com.backend.topperfriendweb.service.collection.CollectionMutationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +26,8 @@ import java.util.List;
 @Slf4j
 public class CollectionController {
 
-    private final CollectionService collectionService;
+    private final CollectionQueryService collectionQueryService;
+    private final CollectionMutationService collectionMutationService;
     private final UserRepository userRepository;
 
     // Helper to get logged-in user (consistent with other controllers)
@@ -41,7 +43,7 @@ public class CollectionController {
     public ResponseEntity<CommonResponse<CollectionDTO>> createCollection(
             @Valid @RequestBody CreateCollectionRequest request) {
         User user = getLoggedInUser();
-        CollectionDTO collection = collectionService.createCollection(request, user);
+        CollectionDTO collection = collectionMutationService.createCollection(request, user);
         return ResponseEntity.ok(CommonResponse.success("Collection created successfully", collection));
     }
 
@@ -49,7 +51,7 @@ public class CollectionController {
     @GetMapping
     public ResponseEntity<CommonResponse<List<CollectionDTO>>> getUserCollections() {
         User user = getLoggedInUser();
-        List<CollectionDTO> collections = collectionService.getUserCollections(user);
+        List<CollectionDTO> collections = collectionQueryService.getUserCollections(user);
         return ResponseEntity.ok(CommonResponse.success("Collections retrieved successfully", collections));
     }
 
@@ -57,7 +59,7 @@ public class CollectionController {
     @GetMapping("/{id}")
     public ResponseEntity<CommonResponse<CollectionDTO>> getCollectionById(@PathVariable Long id) {
         User user = getLoggedInUser();
-        CollectionDTO collection = collectionService.getCollectionById(id, user);
+        CollectionDTO collection = collectionQueryService.getCollectionById(id, user);
         return ResponseEntity.ok(CommonResponse.success("Collection retrieved successfully", collection));
     }
 
@@ -67,7 +69,7 @@ public class CollectionController {
             @PathVariable Long id,
             @Valid @RequestBody UpdateCollectionRequest request) {
         User user = getLoggedInUser();
-        CollectionDTO collection = collectionService.updateCollection(id, request, user);
+        CollectionDTO collection = collectionMutationService.updateCollection(id, request, user);
         return ResponseEntity.ok(CommonResponse.success("Collection updated successfully", collection));
     }
 
@@ -75,7 +77,7 @@ public class CollectionController {
     @DeleteMapping("/{id}")
     public ResponseEntity<CommonResponse<String>> deleteCollection(@PathVariable Long id) {
         User user = getLoggedInUser();
-        collectionService.deleteCollection(id, user);
+        collectionMutationService.deleteCollection(id, user);
         return ResponseEntity.ok(CommonResponse.success("Collection deleted successfully"));
     }
 
@@ -85,7 +87,7 @@ public class CollectionController {
             @PathVariable Long collectionId,
             @Valid @RequestBody AddItemToCollectionRequest request) {
         User user = getLoggedInUser();
-        CollectionItemDTO item = collectionService.addItemToCollection(collectionId, request, user);
+        CollectionItemDTO item = collectionMutationService.addItemToCollection(collectionId, request, user);
         return ResponseEntity.ok(CommonResponse.success("Item added to collection successfully", item));
     }
 
@@ -96,7 +98,7 @@ public class CollectionController {
             @PathVariable String itemType,
             @PathVariable Long itemId) {
         User user = getLoggedInUser();
-        collectionService.removeItemFromCollection(collectionId, itemType, itemId, user);
+        collectionMutationService.removeItemFromCollection(collectionId, itemType, itemId, user);
         return ResponseEntity.ok(CommonResponse.success("Item removed from collection successfully"));
     }
 }
