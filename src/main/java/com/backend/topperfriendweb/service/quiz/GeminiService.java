@@ -100,12 +100,6 @@ public class GeminiService {
         return callGemini(prompt);
     }
 
-    // Fallback method signature must match the original + Throwable at the end
-    private String fallbackGenerateContent(String prompt, Throwable t) {
-        log.warn("Gemini circuit breaker fallback invoked: {}", t.getMessage());
-        return "Service temporarily unavailable. Please try again later.";
-    }
-
     public String summarize(String text) {
         if (text == null || text.trim().isEmpty()) {
             throw new IllegalArgumentException("Text cannot be empty for summarization");

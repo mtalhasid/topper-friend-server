@@ -27,12 +27,12 @@ Content-Type: application/json
 }
 
 ### Login
-POST {{host}}/api/auth/login
+POST http://localhost:8080/api/auth/login
 Content-Type: application/json
 
 {
-  "email": "l@gmail.com",
-  "password": "lll"
+  "email": "drstrange@gmail.com",
+  "password": "drstrange"
 }
 
 ### Current user
@@ -232,13 +232,14 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wb
 ### -----------------------------
 
 ### 2️⃣ Chat with AI tutor (context: user's quiz weaknesses)
-POST http://localhost:8080/api/ai-chat
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiV2FrYW5kYSBCaGFpIiwidXNlcklkIjozNywiZW1haWwiOiJ3YWthbmRhQGdtYWlsLmNvbSIsInN1YiI6Indha2FuZGFAZ21haWwuY29tIiwiaWF0IjoxNzU3OTU4MDE4LCJleHAiOjE3NTgwNDQ0MTh9.BIlcmRt2FvEkKVAqHf1R8A7oUB8XGpcsUb-GW7OdWSM
+POST http://localhost:8080/api/ai-chat/30
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiRHIgU3RyYW5nZSIsInVzZXJJZCI6NTEsImVtYWlsIjoiZHJzdHJhbmdlQGdtYWlsLmNvbSIsInN1YiI6ImRyc3RyYW5nZUBnbWFpbC5jb20iLCJpYXQiOjE3NTg1Njc2MDgsImV4cCI6MTc1ODY1NDAwOH0.XL2LuGBsVFUD-rBSZlOHMO8Fln0CNb7cQX2c3DKjC3w
 Content-Type: application/json
 
 {
-  "userId": 37,
-  "message": "Can you explain me my weaknesses that u have..??"
+  "message": "Can you explain me my weaknesses that u have..??",
+  "quizId": "46"
+
 }
 
 

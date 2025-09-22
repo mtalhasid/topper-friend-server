@@ -40,9 +40,29 @@ public class AiChatController {
                 return ResponseEntity.badRequest().body(Map.of("error", "Message is required"));
             }
 
-            String aiResponse = aiChatService.chatWithStudyPlanWeakness(user, message, studyPlanId);  // Pass studyPlanId
+            // Optional specificity controls
+            Long quizId = null;
+            try {
+                if (body.containsKey("quizId") && body.get("quizId") != null && !body.get("quizId").isBlank()) {
+                    quizId = Long.parseLong(body.get("quizId"));
+                }
+            } catch (NumberFormatException ex) {
+                return ResponseEntity.badRequest().body(Map.of("error", "quizId must be a number"));
+            }
+            String explicitWeakness = body.getOrDefault("weakness", null);
+
+            String aiResponse = aiChatService.chatWithStudyPlanWeakness(user, message, studyPlanId, quizId, explicitWeakness);
             return ResponseEntity.ok(Map.of("success", true, "response", aiResponse));
 
+        } catch (IllegalStateException e) {
+            // Missing quiz/weakness summary, or other validation errors in service
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (RuntimeException e) {
+            // Map specific not found message to 404, else treat as 500 below
+            if ("Study plan not found".equals(e.getMessage())) {
+                return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
+            }
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
