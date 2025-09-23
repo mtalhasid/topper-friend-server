@@ -4,6 +4,10 @@ import com.backend.topperfriendweb.dto.CommonResponse;
 import com.backend.topperfriendweb.dto.studyplan.StudyPlanDTO;
 import com.backend.topperfriendweb.dto.studyplan.UpdateStudyPlanStatusRequest;
 import com.backend.topperfriendweb.dto.studyplan.UpdateStudyPlanTitleRequest;
+import com.backend.topperfriendweb.dto.studyplan.UpdateStudyPlanMarkdownRequest;
+import com.backend.topperfriendweb.dto.studyplan.UpdateStudyPlanResourcesRequest;
+import com.backend.topperfriendweb.dto.studyplan.UpdateStudyPlanTasksRequest;
+import com.backend.topperfriendweb.dto.studyplan.UpdateStudyPlanPdfRequest;
 import com.backend.topperfriendweb.model.User;
 import com.backend.topperfriendweb.repository.UserRepository;
 import com.backend.topperfriendweb.service.studyplan.StudyPlanService;
@@ -100,6 +104,51 @@ public class StudyPlanController {
         studyPlanService.deleteStudyPlan(id, user.getId());
         return ResponseEntity.ok(
                 CommonResponse.success("Study plan deleted successfully", "Study plan deleted successfully")
+        );
+    }
+
+    // New endpoints to update content fields
+    @PatchMapping("/{id}/markdown")
+    public ResponseEntity<CommonResponse<StudyPlanDTO>> updateStudyPlanMarkdown(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateStudyPlanMarkdownRequest request) {
+        User user = getLoggedInUser();
+        StudyPlanDTO studyPlan = studyPlanService.updateStudyPlanMarkdown(id, request, user.getId());
+        return ResponseEntity.ok(
+                CommonResponse.success("Study plan markdown updated successfully", studyPlan)
+        );
+    }
+
+    @PatchMapping("/{id}/resources")
+    public ResponseEntity<CommonResponse<StudyPlanDTO>> updateStudyPlanResources(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateStudyPlanResourcesRequest request) {
+        User user = getLoggedInUser();
+        StudyPlanDTO studyPlan = studyPlanService.updateStudyPlanResources(id, request, user.getId());
+        return ResponseEntity.ok(
+                CommonResponse.success("Study plan resources updated successfully", studyPlan)
+        );
+    }
+
+    @PatchMapping("/{id}/tasks")
+    public ResponseEntity<CommonResponse<StudyPlanDTO>> updateStudyPlanTasks(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateStudyPlanTasksRequest request) {
+        User user = getLoggedInUser();
+        StudyPlanDTO studyPlan = studyPlanService.updateStudyPlanTasks(id, request, user.getId());
+        return ResponseEntity.ok(
+                CommonResponse.success("Study plan tasks updated successfully", studyPlan)
+        );
+    }
+
+    @PatchMapping("/{id}/pdf")
+    public ResponseEntity<CommonResponse<StudyPlanDTO>> updateStudyPlanPdf(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateStudyPlanPdfRequest request) {
+        User user = getLoggedInUser();
+        StudyPlanDTO studyPlan = studyPlanService.updateStudyPlanPdf(id, request, user.getId());
+        return ResponseEntity.ok(
+                CommonResponse.success("Study plan PDF updated successfully", studyPlan)
         );
     }
 }
