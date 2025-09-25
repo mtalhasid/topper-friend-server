@@ -147,15 +147,34 @@ public class GeminiService {
             throw new IllegalArgumentException("Weakness analysis cannot be empty for study plan generation");
         }
 
-        String prompt = "Based on the following weakness analysis from a quiz, create a detailed 4-week study plan with specific daily tasks, resources, and milestones. " +
-                "Format it clearly with week-by-week breakdown:\n\n" +
+        String prompt = "Based on the following weakness analysis from a quiz, create a detailed 4-week study plan with specific daily tasks, resources, and milestones.\n\n" +
+                "IMPORTANT: Use ONLY this exact format for daily tasks:\n" +
+                "| Day | Task Description | Resources | Milestone |\n" +
+                "|-----|------------------|-----------|----------|\n" +
+                "| 1   | [Task description here] | [Resources here] | [Milestone here] |\n" +
+                "| 2   | [Task description here] | [Resources here] | [Milestone here] |\n\n" +
+
+                "DO NOT use formats like:\n" +
+                "- **Day 1:** or **Monday:** or **Task 1 (Day 1-2):**\n" +
+                "- Only use the markdown table format shown above\n" +
+                "- Number days sequentially: 1, 2, 3, 4, 5, etc.\n" +
+                "- Keep task descriptions concise but specific\n\n" +
+
                 "Weakness Analysis:\n" + weaknessAnalysis + "\n\n" +
+
                 "Please provide:\n" +
-                "- Week 1-4 breakdown with daily tasks\n" +
-                "- Recommended study resources\n" +
-                "- Practice exercises\n" +
-                "- Progress checkpoints\n" +
-                "Focus specifically on addressing the identified weaknesses.";
+                "- 4-week breakdown (28 days) using the table format\n" +
+                "- Week headers like **Week 1: [Topic Focus]**\n" +
+                "- Recommended study resources in the table\n" +
+                "- Specific milestones for each day\n" +
+                "- Focus on addressing the identified weaknesses\n\n" +
+
+                "Example format:\n" +
+                "**Week 1: Foundation Building**\n\n" +
+                "| Day | Task Description | Resources | Milestone |\n" +
+                "|-----|------------------|-----------|----------|\n" +
+                "| 1   | Read Chapter 1 on basic concepts | Textbook Ch.1, Khan Academy | Complete reading and take notes |\n" +
+                "| 2   | Practice 10 basic problems | Exercise book, online practice | Solve at least 8/10 correctly |\n";
 
         return callGemini(prompt);
     }

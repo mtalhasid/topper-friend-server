@@ -1,5 +1,6 @@
 package com.backend.topperfriendweb.controller;
 
+import com.backend.topperfriendweb.dto.CommonResponse;
 import com.backend.topperfriendweb.model.User;
 import com.backend.topperfriendweb.repository.UserRepository;
 import com.backend.topperfriendweb.service.studyplan.AiChatService;
@@ -25,8 +26,8 @@ public class AiChatController {
         this.jwtUtil = jwtUtil;
     }
 
-    @PostMapping("/{studyPlanId}")  // Change this line
-    public ResponseEntity<?> chat(@PathVariable Long studyPlanId,  // Add this parameter
+    @PostMapping("/{studyPlanId}")
+    public ResponseEntity<CommonResponse<String>> chat(@PathVariable Long studyPlanId,
                                   @RequestHeader("Authorization") String authHeader,
                                   @RequestBody Map<String, String> body) {
         try {
@@ -37,34 +38,25 @@ public class AiChatController {
 
             String message = body.get("message");
             if (message == null || message.isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Message is required"));
+                return ResponseEntity.badRequest().body(CommonResponse.error("Message is required"));
             }
 
-            // Optional specificity controls
-            Long quizId = null;
-            try {
-                if (body.containsKey("quizId") && body.get("quizId") != null && !body.get("quizId").isBlank()) {
-                    quizId = Long.parseLong(body.get("quizId"));
-                }
-            } catch (NumberFormatException ex) {
-                return ResponseEntity.badRequest().body(Map.of("error", "quizId must be a number"));
-            }
             String explicitWeakness = body.getOrDefault("weakness", null);
 
-            String aiResponse = aiChatService.chatWithStudyPlanWeakness(user, message, studyPlanId, quizId, explicitWeakness);
-            return ResponseEntity.ok(Map.of("success", true, "response", aiResponse));
+            String aiResponse = aiChatService.chatWithStudyPlanWeakness(user, message, studyPlanId, explicitWeakness);
+            return ResponseEntity.ok(CommonResponse.success("AI response generated", aiResponse));
 
         } catch (IllegalStateException e) {
             // Missing quiz/weakness summary, or other validation errors in service
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            return ResponseEntity.badRequest().body(CommonResponse.error(e.getMessage()));
         } catch (RuntimeException e) {
             // Map specific not found message to 404, else treat as 500 below
             if ("Study plan not found".equals(e.getMessage())) {
-                return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
+                return ResponseEntity.status(404).body(CommonResponse.error(e.getMessage()));
             }
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(500).body(CommonResponse.error(e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(500).body(CommonResponse.error(e.getMessage()));
         }
     }
 }

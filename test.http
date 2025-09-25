@@ -186,11 +186,11 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsQGdtYWlsLmNvbSIsImlhdCI6M
 
 ### 1️⃣ Generate New Study Plan
 POST http://localhost:8080/api/study-plans/generate
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsQGdtYWlsLmNvbSIsImlhdCI6MTc1NzcxOTkwNywiZXhwIjoxNzU3ODA2MzA3fQ.ZDVR7AgjPYTgJVA1oyMNRxo4uuIa2eSNmZjpoy3fyzg",
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiQnJ1Y2UgQmFubmVyIiwidXNlcklkIjo1NCwiZW1haWwiOiJodWxrQGdtYWlsLmNvbSIsInN1YiI6Imh1bGtAZ21haWwuY29tIiwiaWF0IjoxNzU4NzczMDIyLCJleHAiOjE3NTg4NTk0MjJ9.d6AdaBcwHPqy0o0BxTObDHcIz6ibHjBkxP-9cz9MaGo
 Content-Type: application/json
 
 {
-  "weaknessAnalysis": "The user's weakness lies in a fundamental misunderstanding of core Java concepts, specifically the role of the JVM and the compilation process.  They seem to be confusing compilation with direct machine code execution and lack a firm grasp of what makes Java platform-independent.\n\n**How to improve:**\n\n1. **Focus on Core Concepts:** The user needs to revisit and solidify their understanding of Java's fundamental principles, particularly the JVM's role in achieving platform independence.  They should study how Java code is compiled (into bytecode, not directly to machine code) and executed by the JVM.\n\n2. **Hands-on Practice:**  Writing and running simple Java programs is crucial.  This will help reinforce theoretical knowledge and provide a practical understanding of the compilation and execution process.\n\n3. **Utilize Learning Resources:**  The user should consult reliable Java learning resources such as textbooks, online tutorials (e.g., Oracle's Java tutorials), and documentation.  Focusing on introductory material that covers the basics of Java's architecture and design will be beneficial.\n\n4. **Practice with Quizzes and Exercises:**  Regular practice with quizzes and coding exercises will help identify and address knowledge gaps.  Focusing on questions that specifically test understanding of the JVM and compilation process is recommended.\n\n\nIn short, the user needs to move beyond rote memorization and develop a deeper, conceptual understanding of Java's architecture and execution model.\n"
+  "weaknessAnalysis": "The user's weakness lies only in Strings toUpperCase and toLowerCase\n"
 }
 
 ### 2️⃣ Get All Study Plans
@@ -232,17 +232,13 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmFpbmVkYm90MTBrQGV4YW1wb
 ### -----------------------------
 
 ### 2️⃣ Chat with AI tutor (context: user's quiz weaknesses)
-POST http://localhost:8080/api/ai-chat/30
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiRHIgU3RyYW5nZSIsInVzZXJJZCI6NTEsImVtYWlsIjoiZHJzdHJhbmdlQGdtYWlsLmNvbSIsInN1YiI6ImRyc3RyYW5nZUBnbWFpbC5jb20iLCJpYXQiOjE3NTg1Njc2MDgsImV4cCI6MTc1ODY1NDAwOH0.XL2LuGBsVFUD-rBSZlOHMO8Fln0CNb7cQX2c3DKjC3w
+POST http://localhost:8080/api/ai-chat/27
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiRHIgU3RyYW5nZSIsInVzZXJJZCI6NTEsImVtYWlsIjoiZHJzdHJhbmdlQGdtYWlsLmNvbSIsInN1YiI6ImRyc3RyYW5nZUBnbWFpbC5jb20iLCJpYXQiOjE3NTg3NzY4NTEsImV4cCI6MTc1ODg2MzI1MX0.T43TIcg7gzvI-CqeHXAC_5N8w16o5fKoa-oMuf8-g4M
 Content-Type: application/json
 
 {
-  "message": "Can you explain me my weaknesses that u have..??",
-  "quizId": "46"
-
+  "message": "Can u tell me my weakness in what subject im week?"
 }
-
-
 
 
 
