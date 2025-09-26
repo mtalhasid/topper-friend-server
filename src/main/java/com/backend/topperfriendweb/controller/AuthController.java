@@ -6,7 +6,6 @@ import com.backend.topperfriendweb.dto.userprofile.UserProfileDTO;
 import com.backend.topperfriendweb.mapper.UserMapper;
 import com.backend.topperfriendweb.model.User;
 import com.backend.topperfriendweb.service.auth.AuthService;
-import com.backend.topperfriendweb.service.note.NoteService;
 import com.backend.topperfriendweb.utils.JwtUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +26,6 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
     private final AuthService authService;
     private final JwtUtil jwtUtil;
-    private final NoteService noteService;
     private final UserMapper userMapper;
 
 

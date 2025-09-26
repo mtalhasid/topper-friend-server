@@ -29,7 +29,6 @@ public class QuizController {
     private final GeminiService geminiService;
     private final UserRepository userRepository;
 
-    // Helper to get logged-in user
     private User getLoggedInUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = (String) auth.getPrincipal();

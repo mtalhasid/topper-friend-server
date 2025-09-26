@@ -107,7 +107,6 @@ public class StudyPlanController {
         );
     }
 
-    // New endpoints to update content fields
     @PatchMapping("/{id}/markdown")
     public ResponseEntity<CommonResponse<StudyPlanDTO>> updateStudyPlanMarkdown(
             @PathVariable Long id,

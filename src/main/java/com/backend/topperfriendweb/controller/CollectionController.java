@@ -30,7 +30,7 @@ public class CollectionController {
     private final CollectionMutationService collectionMutationService;
     private final UserRepository userRepository;
 
-    // Helper to get logged-in user (consistent with other controllers)
+    // Helper to get logged-in user
     private User getLoggedInUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = (String) auth.getPrincipal();

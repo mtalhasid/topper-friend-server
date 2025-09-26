@@ -23,7 +23,6 @@ public class UserController {
 
     private final UserService userService;
 
-    // Get all users with completed onboarding
     @GetMapping
     public ResponseEntity<CommonResponse<List<User>>> getAllUsers() {
         List<User> users = userService.getAllUsersWithCompletedOnboarding();

@@ -63,7 +63,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<CommonResponse<Void>> handleUnhandled(Exception ex) {
-        // Avoid leaking internals; keep message generic but log stacktrace via server logs (Spring will log)
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(CommonResponse.error("An unexpected error occurred"));
     }

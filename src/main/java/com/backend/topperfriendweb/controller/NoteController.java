@@ -43,7 +43,7 @@ public class NoteController {
         try {
             return getLoggedInUser().getId();
         } catch (Exception e) {
-            return null; // User not logged in
+            return null;
         }
     }
 
