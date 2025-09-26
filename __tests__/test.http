@@ -1,0 +1,291 @@
+### Base variables
+@host = http://localhost:8080
+@auth = {{token}}
+
+### -----------------------------
+### AUTH CONTROLLER ENDPOINTS
+### -----------------------------
+
+### Register a new user
+POST {{host}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "",
+  "name": "",
+  "email": "",
+  "password": ""
+}
+
+### Verify OTP
+POST {{host}}/api/auth/verify-otp
+Content-Type: application/json
+
+{
+  "email": "",
+  "code": ""
+}
+
+### Login
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "",
+  "password": ""
+}
+
+### Current user
+GET {{host}}/api/auth/me
+Authorization: Bearer {{auth}}
+
+### Resend OTP
+POST {{host}}/api/auth/resend-otp
+Content-Type: application/json
+
+{
+  "email": ""
+}
+
+### Complete Onboarding
+POST {{host}}/api/auth/onboarding
+Authorization: Bearer {{auth}}
+Content-Type: application/json
+
+{
+  "username": "",
+  "name": "",
+  "collegeName": "",
+  "rollNumber": "",
+  "image": ""
+}
+
+### Google Callback (server-side)
+POST {{host}}/api/auth/google-callback
+Content-Type: application/json
+
+{
+  "code": "AUTH_CODE_FROM_GOOGLE",
+  "state": "OPTIONAL_STATE_IF_USED"
+}
+
+### -----------------------------
+### NOTE CONTROLLER ENDPOINTS
+### -----------------------------
+
+### Create Note
+POST {{host}}/api/notes
+Authorization: Bearer {{auth}}
+Content-Type: application/json
+
+{
+  "title": "",
+  "pdfLink": "",
+  "tags": ["math","algebra"],
+  "pdfOption": ""
+}
+
+### Get My Notes
+GET {{host}}/api/notes
+Authorization: Bearer {{auth}}
+
+### Get Note by ID
+GET {{host}}/api/notes/1
+Authorization: Bearer {{auth}}
+
+### Delete Note
+DELETE {{host}}/api/notes/1
+Authorization: Bearer {{auth}}
+
+### Browse Notes (paginated)
+GET {{host}}/api/notes/browse?query=&tag=&page=1&limit=10
+Authorization: Bearer {{auth}}
+
+### Search Notes (alias)
+GET {{host}}/api/notes/search?query=&tag=&page=1&limit=10
+Authorization: Bearer {{auth}}
+
+### Get Paginated Notes (alias)
+GET {{host}}/api/notes/page?query=&tag=&page=1&limit=10
+Authorization: Bearer {{auth}}
+
+### Get Saved Notes
+GET {{host}}/api/notes/saved
+Authorization: Bearer {{auth}}
+
+### Get Liked Notes
+GET {{host}}/api/notes/liked
+Authorization: Bearer {{auth}}
+
+### Like Note
+POST {{host}}/api/notes/1/like
+Authorization: Bearer {{auth}}
+POST http://localhost:8080/api/notes/2/like
+Authorization: Bearer token
+
+### Unlike Note
+DELETE http://localhost:8080/api/notes/2/like
+Authorization: Bearer token
+
+### Save Note
+POST http://localhost:8080/api/notes/3/save
+Authorization: Bearer token
+
+### Unsave Note
+DELETE http://localhost:8080/api/notes/2/save
+Authorization: Bearer token
+
+
+
+### -----------------------------
+### QUIZ CONTROLLER ENDPOINTS (/quiz-generator)
+### -----------------------------
+
+### Generate summary
+POST http://localhost:8080/api/quiz-generator
+Content-Type: application/json
+Authorization: Bearer token
+
+{
+  "text": "",
+  "action": ""
+}
+
+### Generate quiz
+POST http://localhost:8080/api/quiz-generator
+Content-Type: application/json
+Authorization: Bearer token
+
+{
+  "text": "",
+  "action": ""
+}
+
+### Get all quizzes of the logged-in user
+GET http://localhost:8080/api/quiz-generator
+Authorization: Bearer token
+
+### Submit quiz for weakness analysis
+POST http://localhost:8080/api/quiz-generator/submit
+Content-Type: application/json
+Authorization: Bearer token
+
+{
+  "quizId": 1,
+  "answers": [0,1]
+}
+
+
+
+
+### -----------------------------
+### StUDY PLAN CONTROLLER ENDPOINTS (/study-plans)
+### -----------------------------
+
+### 1️⃣ Generate New Study Plan
+POST http://localhost:8080/api/study-plans/generate
+Authorization: Bearer token
+Content-Type: application/json
+
+{
+  "weaknessAnalysis": "\n"
+}
+
+### 2️⃣ Get All Study Plans
+GET http://localhost:8080/api/study-plans
+Authorization: Bearer token
+
+### 3️⃣ Get Study Plan By ID
+GET http://localhost:8080/api/study-plans/1
+Authorization: Bearer token
+
+### 4️⃣ Update Study Plan Status
+PATCH http://localhost:8080/api/study-plans/1/status
+Authorization: Bearer token
+Content-Type: application/json
+
+{
+  "status": "COMPLETED"
+}
+
+### 5️⃣ Update Study Plan Title
+PATCH http://localhost:8080/api/study-plans/1/title
+Authorization: Bearer token
+Content-Type: application/json
+
+{
+  "title": ""
+}
+
+### 6️⃣ Delete Study Plan
+DELETE http://localhost:8080/api/study-plans/1
+Authorization: Bearer token
+
+
+
+
+### -----------------------------
+### AI CHATBOT CONTROLLER ENDPOINTS (study-plans/:id)
+### -----------------------------
+
+### 2️⃣ Chat with AI tutor (context: user's quiz weaknesses)
+POST http://localhost:8080/api/ai-chat/id
+Authorization: Bearer token
+Content-Type: application/json
+
+{
+  "message": ""
+}
+
+
+
+
+### -----------------------------
+### COLLECTIONS CONTROLLER ENDPOINTS
+### -----------------------------
+
+### 1️⃣ Create Collection
+POST http://localhost:8080/api/collections
+Authorization: Bearer token
+Content-Type: application/json
+
+{
+  "title": "",
+  "description": ""
+}
+
+### 2️⃣ Get All Collections
+GET http://localhost:8080/api/collections
+Authorization: Bearer token
+
+### 3️⃣ Get Collection By ID
+GET http://localhost:8080/api/collections/7
+Authorization: Bearer token
+
+### 4️⃣ Update Collection
+PATCH http://localhost:8080/api/collections/7
+Authorization: Bearer token
+Content-Type: application/json
+
+{
+  "title": "",
+  "description": ""
+}
+
+### 5️⃣ Delete Collection
+DELETE http://localhost:8080/api/collections/1
+Authorization: Bearer token
+
+### 6️⃣ Add Item to Collection
+POST http://localhost:8080/api/collections/7/items
+Authorization: Bearer token
+Content-Type: application/json
+
+{
+  "itemType": "NOTE",
+  "itemId": 1
+}
+
+### 7️⃣ Remove Item from Collection
+DELETE http://localhost:8080/api/collections/7/items/NOTE/123
+Authorization: Bearer token
