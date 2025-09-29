@@ -7,12 +7,17 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Repository
 public interface QuizRepository extends JpaRepository<Quiz, Long> {
     List<Quiz> findByUserId(Long userId);
     Optional<Quiz> findTopByUserIdOrderByCreatedAtDesc(Long userId);
+
+    // Quota helpers (derived): count and fetch oldest-in-window for reset calc
+    long countByUserIdAndCreatedAtAfter(Long userId, LocalDateTime since);
+    Optional<Quiz> findFirstByUserIdAndCreatedAtAfterOrderByCreatedAtAsc(Long userId, LocalDateTime since);
 
     // Lightweight list for UI: avoid TEXT columns (questions_json, weakness_summary)
     @Query(value = """

@@ -1,6 +1,7 @@
 package com.backend.topperfriendweb.controller;
 
 import com.backend.topperfriendweb.dto.CommonResponse;
+import com.backend.topperfriendweb.dto.quiz.QuotaDTO;
 import com.backend.topperfriendweb.dto.studyplan.StudyPlanDTO;
 import com.backend.topperfriendweb.dto.studyplan.UpdateStudyPlanStatusRequest;
 import com.backend.topperfriendweb.dto.studyplan.UpdateStudyPlanTitleRequest;
@@ -10,6 +11,7 @@ import com.backend.topperfriendweb.dto.studyplan.UpdateStudyPlanTasksRequest;
 import com.backend.topperfriendweb.dto.studyplan.UpdateStudyPlanPdfRequest;
 import com.backend.topperfriendweb.model.User;
 import com.backend.topperfriendweb.repository.UserRepository;
+import com.backend.topperfriendweb.repository.StudyPlanRepository;
 import com.backend.topperfriendweb.service.studyplan.StudyPlanService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/study-plans")
@@ -34,6 +37,7 @@ public class StudyPlanController {
 
     private final StudyPlanService studyPlanService;
     private final UserRepository userRepository;
+    private final StudyPlanRepository studyPlanRepository;
 
     private User getLoggedInUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -65,6 +69,21 @@ public class StudyPlanController {
         return ResponseEntity.ok(
                 CommonResponse.success("Study plans retrieved successfully", studyPlans)
         );
+    }
+
+    @GetMapping("/quota")
+    public ResponseEntity<CommonResponse<QuotaDTO>> getQuota() {
+        User user = getLoggedInUser();
+        int limit = 2;
+        LocalDateTime since = LocalDateTime.now().minusHours(24);
+        long used = studyPlanRepository.countByUserIdAndCreatedAtAfter(user.getId(), since);
+        int remaining = (int) Math.max(0, limit - used);
+        LocalDateTime resetAt = studyPlanRepository
+                .findFirstByUserIdAndCreatedAtAfterOrderByCreatedAtAsc(user.getId(), since)
+                .map(sp -> sp.getCreatedAt().plusHours(24))
+                .orElse(null);
+        QuotaDTO dto = new QuotaDTO(limit, (int) used, remaining, resetAt);
+        return ResponseEntity.ok(CommonResponse.success("Quota retrieved", dto));
     }
 
     @GetMapping("/{id}")

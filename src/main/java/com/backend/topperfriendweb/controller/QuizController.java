@@ -4,6 +4,7 @@ import com.backend.topperfriendweb.dto.CommonResponse;
 import com.backend.topperfriendweb.dto.quiz.*;
 import com.backend.topperfriendweb.model.User;
 import com.backend.topperfriendweb.repository.UserRepository;
+import com.backend.topperfriendweb.repository.QuizRepository;
 import com.backend.topperfriendweb.service.quiz.GeminiService;
 import com.backend.topperfriendweb.service.quiz.QuizService;
 import jakarta.validation.Valid;
@@ -17,6 +18,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/quiz-generator")
@@ -28,6 +30,7 @@ public class QuizController {
     private final QuizService quizService;
     private final GeminiService geminiService;
     private final UserRepository userRepository;
+    private final QuizRepository quizRepository;
 
     private User getLoggedInUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -46,8 +49,7 @@ public class QuizController {
             QuizGenerationResponse response = new QuizGenerationResponse(
                     summary,
                     null,
-                    "summary"
-            );
+                    "summary");
             return ResponseEntity.ok(CommonResponse.success("Text summarized successfully", response));
 
         } else if ("generate-quiz".equals(request.getAction())) {
@@ -57,12 +59,23 @@ public class QuizController {
             QuizGenerationResponse response = new QuizGenerationResponse(
                     null,
                     List.of(quiz),
-                    "quiz"
-            );
+                    "quiz");
             return ResponseEntity.ok(CommonResponse.success("Quiz generated successfully", response));
         }
 
         throw new IllegalArgumentException("Invalid action. Must be 'summarize' or 'generate-quiz'");
+    }
+
+    @GetMapping("/test-api-key")
+    public ResponseEntity<CommonResponse<String>> testApiKey() {
+        try {
+            String testPrompt = "Hello, Gemini! Please respond with 'API is working' if you can read this.";
+            String response = geminiService.testApiKey(testPrompt);
+            return ResponseEntity.ok(CommonResponse.success("API Key is working", response));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(
+                    CommonResponse.error("API Key test failed: " + e.getMessage()));
+        }
     }
 
     @GetMapping
@@ -70,6 +83,21 @@ public class QuizController {
         User user = getLoggedInUser();
         List<QuizDTO> quizzes = quizService.getUserQuizzes(user.getId());
         return ResponseEntity.ok(CommonResponse.success("User quizzes retrieved successfully", quizzes));
+    }
+
+    @GetMapping("/quota")
+    public ResponseEntity<CommonResponse<QuotaDTO>> getQuota() {
+        User user = getLoggedInUser();
+        int limit = 2;
+        LocalDateTime since = LocalDateTime.now().minusHours(24);
+        long used = quizRepository.countByUserIdAndCreatedAtAfter(user.getId(), since);
+        int remaining = (int) Math.max(0, limit - used);
+        LocalDateTime resetAt = quizRepository
+                .findFirstByUserIdAndCreatedAtAfterOrderByCreatedAtAsc(user.getId(), since)
+                .map(q -> q.getCreatedAt().plusHours(24))
+                .orElse(null);
+        QuotaDTO dto = new QuotaDTO(limit, (int) used, remaining, resetAt);
+        return ResponseEntity.ok(CommonResponse.success("Quota retrieved", dto));
     }
 
     @GetMapping("/{quizId}")

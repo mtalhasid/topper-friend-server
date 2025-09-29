@@ -8,12 +8,14 @@ import com.backend.topperfriendweb.dto.studyplan.UpdateStudyPlanResourcesRequest
 import com.backend.topperfriendweb.dto.studyplan.UpdateStudyPlanTasksRequest;
 import com.backend.topperfriendweb.dto.studyplan.UpdateStudyPlanPdfRequest;
 import com.backend.topperfriendweb.model.User;
+import com.backend.topperfriendweb.repository.StudyPlanRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -22,9 +24,21 @@ public class StudyPlanService {
 
     private final StudyPlanQueryService studyPlanQueryService;
     private final StudyPlanMutationService studyPlanMutationService;
+    private final StudyPlanRepository studyPlanRepository;
 
     @Transactional
     public StudyPlanDTO createStudyPlanFromWeaknessAnalysis(User user, String weaknessAnalysis) {
+        // Enforce 24-hour per-user limit (2)
+        int limit = 2;
+        LocalDateTime since = LocalDateTime.now().minusHours(24);
+        long used = studyPlanRepository.countByUserIdAndCreatedAtAfter(user.getId(), since);
+        if (used >= limit) {
+            LocalDateTime resetAt = studyPlanRepository
+                    .findFirstByUserIdAndCreatedAtAfterOrderByCreatedAtAsc(user.getId(), since)
+                    .map(sp -> sp.getCreatedAt().plusHours(24))
+                    .orElse(LocalDateTime.now().plusHours(24));
+            throw new IllegalArgumentException("Daily study plan generation limit reached. Try again at: " + resetAt);
+        }
         return studyPlanMutationService.createStudyPlanFromWeaknessAnalysis(user, weaknessAnalysis);
     }
 

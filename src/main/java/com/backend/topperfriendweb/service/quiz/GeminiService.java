@@ -29,6 +29,35 @@ public class GeminiService {
                 .build();
         this.quizRepository = quizRepository;
     }
+    public String testApiKey(String prompt) {
+        try {
+            if (apiKey == null || apiKey.trim().isEmpty()) {
+                log.error("API key is not configured");
+                throw new IllegalArgumentException("API key is not configured");
+            }
+    
+            log.info("Testing API key with prompt: {}", prompt);
+            
+            Map<String, Object> request = Map.of(
+                "contents", List.of(Map.of(
+                    "parts", List.of(Map.of("text", prompt))
+                ))
+            );
+    
+            Map response = webClient.post()
+                .uri("/models/gemini-2.5-flash:generateContent?key=" + apiKey)
+                .bodyValue(request)
+                .retrieve()
+                .bodyToMono(Map.class)
+                .block(Duration.ofSeconds(10));
+    
+            log.info("API response: {}", response);
+            return "API is working! Response: " + response;
+        } catch (Exception e) {
+            log.error("API test failed", e);
+            throw new RuntimeException("API test failed: " + e.getMessage(), e);
+        }
+    }
 
     private String callGemini(String prompt) {
         try {
@@ -41,7 +70,7 @@ public class GeminiService {
                             "parts", List.of(Map.of("text", prompt)))));
 
             Map response = webClient.post()
-                    .uri("/models/gemini-1.5-flash:generateContent?key=" + apiKey)
+                    .uri("/models/gemini-2.5-flash:generateContent?key=" + apiKey)
                     .bodyValue(request)
                     .retrieve()
                     .onStatus(
@@ -55,7 +84,7 @@ public class GeminiService {
                     .bodyToMono(Map.class)
                     .retryWhen(Retry.backoff(3, Duration.ofSeconds(2))
                             .filter(throwable -> throwable instanceof WebClientResponseException.ServiceUnavailable))
-                    .timeout(Duration.ofSeconds(30))
+                    .timeout(Duration.ofSeconds(300))
                     .block();
 
             // Parse response

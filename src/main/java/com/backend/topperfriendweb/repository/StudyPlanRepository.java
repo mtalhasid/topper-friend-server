@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 public interface StudyPlanRepository extends JpaRepository<StudyPlan, Long> {
@@ -14,6 +15,10 @@ public interface StudyPlanRepository extends JpaRepository<StudyPlan, Long> {
     Optional<StudyPlan> findByIdAndUser(Long id, User user);
     // Find latest study plan for a user
     Optional<StudyPlan> findTopByUserIdOrderByCreatedAtDesc(Long userId);
+
+    // Quota helpers (derived)
+    long countByUserIdAndCreatedAtAfter(Long userId, LocalDateTime since);
+    Optional<StudyPlan> findFirstByUserIdAndCreatedAtAfterOrderByCreatedAtAsc(Long userId, LocalDateTime since);
 
     // Fast bulk load of study plans used in collections view (minimal necessary columns)
     @Query(value = """
